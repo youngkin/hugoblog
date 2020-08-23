@@ -5,3 +5,9 @@
 	path = public
 	url = https://github.com/youngkin/youngkin.github.io.git
 	branch = master
+[submodule "hugo-future-imperfect-slim"]
+	path = hugo-future-imperfect-slim
+	url = https://github.com/pacollins/hugo-future-imperfect-slim.git
+[submodule "themes/futureimperfect"]
+	path = themes/futureimperfect
+	url = https://github.com/pacollins/hugo-future-imperfect-slim.git

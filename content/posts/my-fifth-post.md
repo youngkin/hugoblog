@@ -1,12 +1,12 @@
 ---
-title: "My First Post"
-date: 2020-08-22T18:02:32-06:00
-draft: false
+date: 2020-08-22T20:40:05-06:00
+description: "6"
+featured_image: "/images/BigSkyTram.jpeg"
+draft: true
 tags: ["markdown", "css", "html", "themes"]
-categories: ["themes", "syntax", "fun"]
+categories: ["themes", "syntax"]
+title: "My Fifth Post"
 ---
-
-
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sollicitudin elementum lectus, sit amet auctor libero gravida nec. Ut est risus, laoreet a ipsum ac, iaculis convallis augue. Vestibulum vitae porta magna. Donec dolor ante, vestibulum sit amet hendrerit et, pharetra eu elit. Mauris nec ultricies nisl, vitae viverra metus. Aliquam eu dictum quam. Vestibulum posuere iaculis hendrerit. Duis fringilla iaculis felis eu pulvinar. Nam tellus libero, fermentum congue justo quis, rhoncus blandit sapien. Sed id auctor ante.
 
