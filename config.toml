@@ -1,4 +1,4 @@
-baseURL = "youngkin.github.io"
+baseURL = ""
 languageCode = "en-us"
 title = "My New Hugo Site"
 theme = "ananke"
