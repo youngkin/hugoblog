@@ -11,3 +11,6 @@
 [submodule "themes/futureimperfect"]
 	path = themes/futureimperfect
 	url = https://github.com/pacollins/hugo-future-imperfect-slim.git
+[submodule "themes/hugo-theme-cleanwhite"]
+	path = themes/hugo-theme-cleanwhite
+	url = https://github.com/zhaohuabing/hugo-theme-cleanwhite.git

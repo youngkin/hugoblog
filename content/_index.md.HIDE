@@ -2,10 +2,10 @@
 title: "Rich Youngkin"
 # featured_image: "/images/BigSkyTram.jpeg"
 #featured_image: "/images/LookingGlass2.jpeg"
-#featured_image: "/images/router2.jpeg"
+featured_image: "/images/router2.jpeg"
 #featured_image: "/images/main_go_bulkops.png"
 #featured_image: "/images/main_go.png"
-featured_image: "/images/main_go_wideandtall.png"
+#featured_image: "/images/main_go_wideandtall.png"
 #featured_image: "/images/main_go_wide.png"
 description: "Mostly software, and some other stuff..."
 ---
