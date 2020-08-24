@@ -72,7 +72,7 @@ home = ["HTML", "RSS"]
 
   [[params.addtional_menus]]
   title =  "ABOUT"
-  href =  "/about/"
+  href =  "/top/about/"
 
   [params.social]
   rss            = true 
