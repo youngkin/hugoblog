@@ -16,7 +16,7 @@ home = ["HTML", "RSS"]
 
 [params]
   #header_image = "images/MeAtJackson.jpeg"
-  header_image = "images/main_go_wideandtall_dark_blur.jpeg"
+  header_image = "images/main_go_wideandtall_darklayer.jpeg"
   title = "Software Engineering - UNDER CONSTRUCTION"
   slogan = "$ grep -rni \"The how's and why's\" ."
   #SEOTitle = "赵化冰的博客 | Zhaohuabing Blog"
@@ -35,7 +35,11 @@ home = ["HTML", "RSS"]
 
   showtoc = false
 
-  # leancloud storage for page view counter
+  friends = false
+  bookmarks = false
+  about_me = true
+
+# leancloud storage for page view counter
   page_view_conter = false 
   leancloud_app_id = ""
   leancloud_app_key = ""
@@ -57,10 +61,6 @@ home = ["HTML", "RSS"]
   #Enable wechat pay & alipay to allow readers send reward money if they like the articles 
   #reward = true 
   # reward_guide = "如果这篇文章对你有用,请随意打赏" 
-
-  friends = false
-  bookmarks = false
-  about_me = true
 
   # Include any custom CSS and/or JS files, url or relative to /static folder
   #custom_css = ["css/lightbox.css", "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css", "css/main.css"]
