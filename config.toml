@@ -6,7 +6,7 @@ languageCode = "en-us"
 #disqusShortname = ""
 #googleAnalytics = ""
 #preserveTaxonomyNames = true
-paginate = 5 #frontpage pagination
+paginate = 5000 #frontpage pagination
 #hasCJKLanguage = true
 
 [outputs]
@@ -17,14 +17,14 @@ home = ["HTML", "RSS"]
 [params]
   #header_image = "images/MeAtJackson.jpeg"
   header_image = "images/main_go_wideandtall_darklayer.jpeg"
-  title = "Software Engineering - UNDER CONSTRUCTION"
+  title = "Software Engineering"
   slogan = "$ grep -rni \"The how's and why's\" ."
-  #SEOTitle = "赵化冰的博客 | Zhaohuabing Blog"
-  #keyword = "赵化冰, zhaohuabing, Zhaohuabing, , 赵化冰的网络日志, 赵化冰的博客, Zhaohuabing Blog, 博客, 个人网站, 互联网, Web, 云原生, PaaS, Istio, #Kubernetes, 微服务, Microservice"
+  SEOTitle = "Rich Youngkin Blog"
+  keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, Microservice"
  
   # Sidebar settings
   sidebar_about_description = "Father, Husband, Skier, Cyclist, and, oh yeah, Software Developer"
-  sidebar_avatar = "images/MeAtJackson.jpeg"      # use absolute URL, seeing it's used in both `/` and `/about/`
+  sidebar_avatar = "images/MeAtJackson.jpeg" 
 
   featured_tags = true 
   featured_condition_size = 2 # How many posts have to have a given tag to be featured (greater-than)
@@ -80,14 +80,14 @@ home = ["HTML", "RSS"]
   linkedin       = "https://www.linkedin.com/in/richard-youngkin-0749763"
   github         = "https://github.com/youngkin"
   medium         = "https://medium.com/@RichYoungkin"
+  stackoverflow  = "https://stackoverflow.com/users/2646870/rich"
+  reddit         = "https://www.reddit.com/user/elevation5280"
   #facebook      = "full profile url in facebook"
   #googleplus    = "full profile url in googleplus"
-  twitter       = "https://twitter.com"
-  #stackoverflow  = "https://stackoverflow.com/users/yourstackoverflowid"
   #instagram     = "full profile url in instagram"
-  #wechat         = "your wechat qr code image"
+  #twitter        = "https://twitter.com"
+  #wechat        = "your wechat qr code image"
   #pinterest     = "full profile url in pinterest"
-  #reddit        = "full profile url in reddit"
   #gitlab        = "full profile url in gitlab"
   #mastodon      = "full profile url in mastodon"
   #keybase       = "full profile url in keybase"
