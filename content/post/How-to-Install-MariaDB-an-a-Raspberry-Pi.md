@@ -5,7 +5,7 @@ date: 2020-08-26T13:07:25-06:00
 draft: false
 image: "images/IndexCardsDark.jpeg"
 tags: ["Raspberry Pi", "MySQL", "MariaDB"]
-categories: []
+categories: ["Raspberry Pi"]
 ---
 
 ## The full text of this article can be found on [Medium](https://medium.com/better-programming/how-to-install-mysql-on-a-raspberry-pi-ad3f69b4a094?source=friends_link&sk=d4fdd7c2a467b2ac2e6beaded27365bd)

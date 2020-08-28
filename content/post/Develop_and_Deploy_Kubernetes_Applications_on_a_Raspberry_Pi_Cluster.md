@@ -3,7 +3,7 @@ title: "Develop and Deploy Kubernetes Applications on a Raspberry Pi Cluster"
 date: 2020-08-26T01:01:31-06:00
 draft: false
 image: "images/RaspberryPiClusterDark.jpeg"
-tags: ["Raspberry Pi", "Docker", "Kubernetes", "Helm", "fluentd", "Networking", "Kubernetes Ingress", "MySQL", "Grafana", "Prometheus", "Elasticsearch", "Traefik"]
+tags: ["Raspberry Pi", "Docker", "Kubernetes", "Helm", "fluentd", "Kubernetes Ingress", "MySQL", "Grafana", "Prometheus", "Elasticsearch", "Traefik"]
 categories: ["Raspberry Pi", "Kubernetes"]
 ---
 

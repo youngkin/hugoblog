@@ -7,12 +7,17 @@ languageCode = "en-us"
 #googleAnalytics = ""
 #preserveTaxonomyNames = true
 paginate = 5000 #frontpage pagination
-#hasCJKLanguage = true
 
-[outputs]
+#[outputs]
 #home = ["HTML", "RSS", "Algolia"]
-home = ["HTML", "RSS"]
+#home = ["HTML", "RSS"]
 #home = ["HTML"]
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  #defaultMarkdownHandler = "blackfriday"
 
 [params]
   #header_image = "images/MeAtJackson.jpeg"
@@ -25,6 +30,7 @@ home = ["HTML", "RSS"]
   # Sidebar settings
   sidebar_about_description = "Father, Husband, Skier, Cyclist, and, oh yeah, Software Developer"
   sidebar_avatar = "images/MeAtJackson.jpeg" 
+  about_me = true
 
   featured_tags = true 
   featured_condition_size = 2 # How many posts have to have a given tag to be featured (greater-than)
@@ -37,7 +43,6 @@ home = ["HTML", "RSS"]
 
   friends = false
   bookmarks = false
-  about_me = true
 
 # leancloud storage for page view counter
   page_view_conter = false 

@@ -5,22 +5,24 @@ set -e
 
 printf "\033[0;32mDeploying updates to GitHub...\033[0m\n"
 
+# Create commit message
+msg="rebuilding site $(date)"
+if [ -n "$*" ]; then
+	msg="$*"
+fi
+
 # Build the project.
 hugo -D
 
 # Go To Public folder
 cd public
 
-# Add changes to git.
+# Add 'public' (Github Pages repo) changes to git and commit/push.
 git add .
-cd ..
-
-# Commit changes.
-msg="rebuilding site $(date)"
-if [ -n "$*" ]; then
-	msg="$*"
-fi
 git commit -m "$msg"
+git push origin master
 
-# Push source and build repos.
+# Add this repos changes to git and commit/push. First 'cd' out of public
+cd ..
+git commit -m "$msg"
 git push origin master
