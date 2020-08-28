@@ -18,11 +18,16 @@ hugo -D
 cd public
 
 # Add 'public' (Github Pages repo) changes to git and commit/push.
+echo "Committing changes to $(pwd)"
 git add .
-#git commit -m "$msg"
-#git push origin master
+git commit -m "$msg"
+git push origin master
 
+echo ""
+echo ""
+echo "Committing changes to $(pwd)"
 # Add this repos changes to git and commit/push. First 'cd' out of public
 cd ..
+git add .
 git commit -m "$msg"
 git push origin master
