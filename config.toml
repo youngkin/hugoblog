@@ -6,7 +6,7 @@ languageCode = "en-us"
 #disqusShortname = ""
 #googleAnalytics = ""
 #preserveTaxonomyNames = true
-paginate = 5000 #frontpage pagination
+paginate = 5 #frontpage pagination
 
 #[outputs]
 #home = ["HTML", "RSS", "Algolia"]
@@ -17,7 +17,6 @@ paginate = 5000 #frontpage pagination
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
-  #defaultMarkdownHandler = "blackfriday"
 
 [params]
   #header_image = "images/MeAtJackson.jpeg"
@@ -70,10 +69,6 @@ paginate = 5000 #frontpage pagination
   # Include any custom CSS and/or JS files, url or relative to /static folder
   #custom_css = ["css/lightbox.css", "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css", "css/main.css"]
   #custom_js = ["js/lightbox.js", "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js", "js/main.js"]
-
-  #[[params.addtional_menus]]
-  #title =  "BOOKS"
-  #href =  "/top/books/"
 
   [[params.addtional_menus]]
   title =  "ABOUT"
