@@ -12,22 +12,27 @@ if [ -n "$*" ]; then
 fi
 
 # Build the project.
+echo ""
+echo ""
+echo "Committing changes to $(pwd)"
 hugo -D
 
 # Go To Public folder
 cd public
 
 # Add 'public' (Github Pages repo) changes to git and commit/push.
+echo ""
+echo ""
 echo "Committing changes to $(pwd)"
 git add .
 git commit -m "$msg"
 git push origin master
 
+# Add this repos changes to git and commit/push. First 'cd' out of public
+cd ..
 echo ""
 echo ""
 echo "Committing changes to $(pwd)"
-# Add this repos changes to git and commit/push. First 'cd' out of public
-cd ..
 git add .
 git commit -m "$msg"
 git push origin master
