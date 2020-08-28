@@ -19,8 +19,8 @@ cd public
 
 # Add 'public' (Github Pages repo) changes to git and commit/push.
 git add .
-git commit -m "$msg"
-git push origin master
+#git commit -m "$msg"
+#git push origin master
 
 # Add this repos changes to git and commit/push. First 'cd' out of public
 cd ..
