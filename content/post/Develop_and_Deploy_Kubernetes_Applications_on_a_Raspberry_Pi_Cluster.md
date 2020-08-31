@@ -1,5 +1,6 @@
 ---
 title: "Develop and Deploy Kubernetes Applications on a Raspberry Pi Cluster"
+description: "This is the first post in a series that describes how to set up a Kubernetes cluster on a cluster of Raspberry Pis."
 date: 2020-08-26T01:01:31-06:00
 draft: false
 image: "images/RaspberryPiClusterDark.jpeg"

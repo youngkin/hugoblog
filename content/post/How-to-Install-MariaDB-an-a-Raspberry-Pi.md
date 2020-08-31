@@ -6,13 +6,15 @@ draft: false
 image: "images/IndexCardsDark.jpeg"
 tags: ["Raspberry Pi", "MySQL", "MariaDB"]
 categories: ["Raspberry Pi"]
+GHissueID: 1
+toc: false
 ---
+
+This article covers how to install and configure [MariaDB](https://mariadb.org/), a feature-equivalent alternative to MySQL, on a Raspberry Pi. Installing is relatively straightforward. Configuring the database is somewhat more involved but still quite manageable.
 
 ## The full text of this article can be found on [Medium](https://medium.com/better-programming/how-to-install-mysql-on-a-raspberry-pi-ad3f69b4a094?source=friends_link&sk=d4fdd7c2a467b2ac2e6beaded27365bd)
 
 ---
-
-This article covers how to install and configure [MariaDB](https://mariadb.org/), a feature-equivalent alternative to MySQL, on a Raspberry Pi. Installing is relatively straightforward. Configuring the database is somewhat more involved but still quite manageable.
 
 This is the sixth and final article in the [Develop and Deploy Kubernetes Applications on a Raspberry Pi Cluster](https://medium.com/better-programming/develop-and-deploy-kubernetes-applications-on-a-raspberry-pi-cluster-fbd4d97a904c) series. It marks the transition from a purely Raspberry Pi focus to software development more generally. With the installation of a database, we will have a full-featured platform that meets our requirements for application development and deployment.
 

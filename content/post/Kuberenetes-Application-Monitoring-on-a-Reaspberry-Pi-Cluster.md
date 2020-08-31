@@ -1,6 +1,6 @@
 ---
 title: "Kubernetes Application Monitoring on a Raspberry Pi Cluster"
-description: "This article is about monitoring applications deployed to a Kubernetes cluster running on Raspberry Pis, specifically the monitoring infrastructure."
+description: "This article is about monitoring applications deployed to Kubernetes running on Raspberry Pis."
 date: 2020-08-26T13:06:44-06:00
 draft: false
 image: "images/Cockpit.jpeg"

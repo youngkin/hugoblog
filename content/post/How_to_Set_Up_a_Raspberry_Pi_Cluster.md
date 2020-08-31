@@ -1,6 +1,6 @@
 ---
 title: "How to Set Up a Raspberry Pi Cluster"
-description: "Need to setup an inexpensive computing cluster? This article tells you what you need to buy, how to install the OS and configure the Raspberry Pis, how to set up networking, and other things you need to know to sinplify ongoing administration and maintenance of the cluster."
+description: "This article tells you what you need to buy, the OS install, and the networking setup to create a Raspberry Pi cluster."
 image: "/images/router.jpeg"
 date: 2020-08-26T13:01:02-06:00
 tags: ["Raspberry Pi", "Networking", "Cluster"]

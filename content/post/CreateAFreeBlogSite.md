@@ -1,10 +1,13 @@
 ---
 title: "Create a Free Blog Site Using GitHub Pages and Hugo"
-date: 2020-08-26T13:09:42-06:00
+description: "This article describes how to use GitHub Pages with Hugo to create, maintain, and host your own blog site."
+date: 2020-08-31T13:09:42-06:00
 draft: false
 image: "images/github-pagesLightBlue.jpeg"
 tags: ["blog", "GitHub Pages", "Hugo"]
 categories: ["blog"]
+GHissueID: 2
+toc: true
 ---
 
 Want to create your own blog, but don't want to get tied into any of the big hosted solutions or subscription publishing sites? This article describes how to use GitHub Pages with Hugo to create, maintain, and host your own blog site.
@@ -14,10 +17,11 @@ Want to create your own blog, but don't want to get tied into any of the big hos
 
 > Prerequisites:
 >
-> 1. A basic knowledge of git and GitHub. For significant customizations beyond what's available natively in Hugo and the chosen Hugo theme, a basic understanding of HTML and CSS will be required.
+> 1. A basic knowledge of git and GitHub. 
 > 2. Git version 2.24.3 or higher
 > 3. Mac development machine
 >    1. Windows and Linux are also supported. Much of what's described here is applicable to both of these. But the exact steps I followed were performed on a Mac.
+> 4. For significant customizations beyond what's available natively in Hugo and the chosen Hugo theme, a basic understanding of HTML and CSS will be required. More information on customizations can be found in the [Appendix](./#appendix) below
 
 This article is a fairly detailed tutorial on how to create a full featured website/blog using Hugo and GitHub Pages. If you just want a quick overview of how to use Hugo I recommend going to the [Hugo Quickstart page](https://gohugo.io/getting-started/quick-start/). If you want a quickstart on setting up a Hugo/GitHub Pages site I recommend going to the [Hugo GitHub Pages quickstart page](https://gohugo.io/hosting-and-deployment/hosting-on-github/).
 
@@ -255,6 +259,7 @@ title: "{{ replace .Name "-" " " | title }}"
 #description: <descriptive text here>
 date: {{ .Date }}
 draft: true
+toc: false
 image: ""
 tags: []
 categories: []
@@ -271,6 +276,7 @@ Here's what each line means:
 * `description` - specifies text to be used in an article's summary on the home page. This text will not be displayed in the article. It is related to the `# Descriptive text here...` line a little lower in the file.
 * `date` - replaced with the date the post was created. The generated date can be changed if you want to modify it, for example after updating the page. There are more sophisticated things you can do with dates, such as published date, last modified date, expiration date, etc. Those all have special meanings. See the [Hugo documentation](https://gohugo.io/getting-started/configuration/#configure-dates) for more details.
 * `draft` - specifies whether a page is in draft or publish state. Pages in draft state can be seen when viewing the site running on the Hugo web server, but they will not be visible from a published web site such as GitHub Pages.
+* `toc` - If `true`, this will create a table of contents at the top of the article. This is a customization. See the appendix, comments section, below for details.
 * `image` - specifies the image to display at the top of the page. If not specified, the `header_image` in `config.toml` will be used.
 * `tags` - specifies a comma separated list of low level subject groupings. Taking my example from above, U.S. states might be an appropriate subject grouping for pages pertaining to U.S. states. For example, `tags: ["Colorado", "Utah", ...]`.
 * `categories` - specifies a specifies a comma separated list of high level subject groupings. Again, taking my example from above, some U.S. states can be put in the category of "Best Ski Areas in the World".
@@ -363,12 +369,191 @@ This web site! The source code is available on GitHub for:
 
 ## Appendix
 
+This appendix describes some additional changes I made that you might also want to consider.
+
+### Add Support for Comments
+
+Any good blog needs to support comments. My basic requirements for commenting were:
+
+1. Free - Blogs with comments are great, but I'm not willing to pay for it.
+2. Hosted - I didn't want to have to stand-up my own comments server
+   
+Hugo does come with out-of-the-box support for [Disqus](https://disqus.com/). Disqus does have a [free option](https://disqus.com/pricing/), but it's ad supported. I don't like ads. So I did a [*little* research on free alternatives](https://talk.hyvor.com/blog/disqus-alternatives/). Sharp eyed readers will notice this article is published by [Hyvor](https://talk.hyvor.com/), one of the free alternatives. I also looked at using [GitHub comments](https://retifrav.github.io/blog/2019/04/19/github-comments-hugo/). I chose not to use GitHub comments due to the requirement that commenters have a GitHub account. Using GitHub comments also felt a bit clunky for sevearl reasons:
+
+1. The comments section of each article was a link to an associated GitHub issue. This link wasn't always obvious
+2. Following the link takes the commentor to GitHub, away from the blog. This felt disjointed.
+3. The blog author has to create an associated GitHub issue for each blog page.
+
+So despite the potential for bias in the Hyvor article, it seemed to cover the bases so I went with Hyvor as my commenting platform. If you think you'd like to use GitHub for comments, [GitHub comments for a Hugo-based blog](https://retifrav.github.io/blog/2019/04/19/github-comments-hugo/) describes how to accomplish this.
+
+#### Hyvor
+
+Using Hyvor as a commenting platform is straightforward:
+
+1. Get a [Hyvor account](https://talk.hyvor.com/docs/account)
+2. Configure your Hyvor account
+3. [Add(Install) Hyvor to your blog](https://talk.hyvor.com/docs/install)
+4. [Customizing the appearance](https://talk.hyvor.com/docs/appearance) and other aspects of how comments will be used
+
+Completing the first step is simply a matter of registering your account. Just fill in the details on the [Sign Up For Hyvor](https://auth.hyvor.com/signup/) page.
+
+The second step, configuring my Hyvor account, was a little less straightforward, at least for me. Once you're logged into the Hyvor site you'll be placed on your account page. On that page is a Website URL entry. This is where you put the top level URL for your blog (e.g., https://smith.github.io). However from here, things are a bit more murky. You'll need to go to your console to do more. To do that you click on the text "Hyvor Talk" at the bottom of the page:
+
+<img style="border:1px solid black" src="/images/hyvoraccount.jpeg" align="center" />
+<figcaption align="left"><center><i style="color:green;">Hyvor account page</i></center></figcaption>
+
+This will take you to another page containing a "Go to Console" button.
+
+<img style="border:1px solid black" src="/images/hyvorconsolebutton.jpeg" align="center" />
+<figcaption align="left"><center><i style="color:green;">Navigate to Console</i></center></figcaption>
+
+Click on the button and your console will look something like this:
+
+<img style="border:1px solid black" src="/images/hyvorconsole.jpeg" align="center" />
+<figcaption align="left"><center><i style="color:green;">Hyvor Console</i></center></figcaption>
+
+Hyvor assigns the `Website ID`. You fill in the rest. I added an additional `Website domain`, `localhost`, so I could test on my local machine.
+
+The third step involves adding Hyvor to your blog. To do this click on "Install" in the left-hand navigation section. Then click on the "Manual Install" option. After doing this you should see 2 steps described in the resulting page. 
+
+<img style="border:1px solid black" src="/images/hyvormanualinstall.jpeg" align="center" />
+<figcaption align="left"><center><i style="color:green;">Hyvor manual install</i></center></figcaption>
+
+You'll need to "cut & paste" the code from step one of this page into your theme's `layouts/partials/comments.html` file *(You should be able to ignore step 2)*. When done it should look something like this:
+
+```html
+<!-- disqus end -->
+<div id="disqus-comment"></div>
+{{ if .Site.Params.disqus_proxy }}
+<script src="{{ "js/iDisqus.js" | relURL }}"></script>
+<script>
+var disq = new iDisqus('disqus-comment', {
+    forum: '{{ .Site.DisqusShortname}}',
+    api: '{{ .Site.Params.disqus_proxy }}',
+	site: '{{ .Site.Params.disqus_site }}',
+    mode: 1,
+    timeout: 5000,
+    init: true
+});
+</script>
+{{ else if .Site.DisqusShortname }}
+{{ template "_internal/disqus.html" . }}
+{{ else if .Site.Params.hyvor }}
+<div id="hyvor-talk-view"></div>
+<script type="text/javascript">
+    var HYVOR_TALK_WEBSITE = XXXXXXX; // DO NOT CHANGE THIS
+    var HYVOR_TALK_CONFIG = {
+        url: false,
+        id: false
+};
+</script>
+{{ end }}
+```
+
+Specifically note the `{{ else if .Site.Params.hyvor }}` block. Except for the value of `HYVOR_TALK_WEBSITE`, which should be your specific assigned value, this is the block you pasted into the `comments.html` file. It's pasted just prior to the `{{ end }}` line. `.Site.Params.hyvor` refers to a parameter in your `config.toml` file in the `[params]` section, e.g.:
+
+```toml
+[params]
+  #header_image = "images/MeAtJackson.jpeg"
+  header_image = "images/main_go_wideandtall_darklayer.jpeg"
+  title = "Software Engineering"
+  slogan = "$ grep -rni \"The how's and why's\" ."
+  SEOTitle = "Rich Youngkin Blog"
+  keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, Microservice"
+
+  # Comments
+  hyvor = true
+ 
+  # Sidebar settings
+```
+
+The pertinent change is the block starting with `# Comments`. `hyvor = true` enables Hyvor commenting. 
+
+The bottom of each blog post will now look something like this:
+
+<img style="border:1px solid black" src="/images/hyvorcomments.jpeg" align="center" />
+<figcaption align="left"><center><i style="color:green;">Comments section</i></center></figcaption>
+
+To get exactly this appearance do this from the Hyvor Console:
+
+1. To match the blog's theme colors, click on the "Appearance" entry in the left-hand navigation section. Then click on "Accent Color" and in the resulting color picker in the bottom left enter the hex color code `#555555`. Then click "Save".
+2. To remove the emoji reactions, click on the "Community" entry in the left-hand navigation section. The second item in settings, just under "Comments Note", is "Reactions". Turn this off and click "Save".
+
+### Optional Table of Contents
+
+I wanted to have the option to include a table of contents on selected articles. As mentioned above, I added a `toc` item in the `archetypes/post.md` file:
+
+```markdown
+---
+title: "{{ replace .Name "-" " " | title }}"
+#description: <descriptive text here>
+date: {{ .Date }}
+draft: true
+toc: false
+image: ""
+tags: []
+categories: []
+---
+
+# Descriptive text here...
+<!--more-->
+```
+
+If set to true then Hugo will generate a table of contents for the associated article. I changed the original `themes/hugo-theme-cleanwhite/layouts/_default/single.html` file **FROM**:
+
+```html
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-11 col-lg-offset-1
+                col-md-10 col-md-offset-1
+                post-container">
+
+                {{ if not (eq (.Param "showtoc") false) }}
+                <header>
+                    <h2>TOC</h2>
+                </header>
+                {{.TableOfContents}}
+                {{ end }}
+                {{ .Content }}
+```
+
+**TO:**
+
+```html
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Post Container -->
+            <div class="
+                col-lg-11 col-lg-offset-1
+                col-md-10 col-md-offset-1
+                post-container">
+
+                {{ if (.Params.toc) }}
+                <header>
+                    <h2>Contents</h2>
+                </header>
+                {{.TableOfContents}}
+                {{ end }}
+                {{ .Content }}
+```
+
+Specifically the block starting with `{{ if not (eq (.Param "showtoc") false) }} ...` was changed to the block starting with `{{ if (.Params.toc) }} ...`.
+
 ### Theme Customizations
 
 I used the [Clean White theme](https://themes.gohugo.io/hugo-theme-cleanwhite/), but I wanted a different look for:
 
 * Title and Description (looking for "green screen" feel)
-* Tags - too dim, wanted to darken
+* Sidebar Tags and social networking "badges" - too dim, wanted to darken
+* Post summaries - these appear under each post Title on the home page. They're a brief summary of the post. I wanted these to be slightly darker.
 * Wanted to change some fonts
 
 Here's what I changed:
@@ -446,11 +631,36 @@ I changed the text rendering (font and font-color) for the **Blog Subtitle** ('s
 }
 ```
 
+#### Change the Post Summaries
+
+<img style="border:1px solid black" src="/images/blogsummary.jpeg" />
+<figcaption><center><i style="color:green;">Blog summary section</i></center></figcaption>
+
+The summary text and post date were a light gray. To improve the contrast I changed the `.post-meta` and `.post-content-preview` colors to `#555555`. 
+
+```css
+.post-meta{
+    font-family:Lora,'Times New Roman',serif;
+    color:#555555;
+    font-size:16px;
+    font-style:italic;
+    margin-top:0}
+
+...
+
+.post-content-preview{
+    font-size:13px;
+    font-style:italic;
+    color:#555555
+    }
+```
+
+
 #### Change the Sidebar
 
 In the Sidebar I wanted to change the text and border color of the "FEATURED TAGS", the text color of the short bio, and the background color of the social networking 'badges'.
 
-<img style="border:2px solid black" src="/images/BlogSideBar.png" align="center" />
+<img style="border:1px solid black" src="/images/BlogSideBar.png" align="center" />
 <figcaption align="left"><center><i style="color:green;">My Sidebar</i></center></figcaption>
 
 

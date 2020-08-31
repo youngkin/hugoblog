@@ -1,6 +1,6 @@
 ---
 title: "Install Kubernetes Ingress on a Raspberry Pi Cluster"
-description: "Ingress is a mechanism that allows clients in an external network to invoke services running in a Kubernetes cluster. This article describes how to setup the Traefik ingress controller."
+description: "This article describes how to setup Kubernetes Ingress using the Traefik ingress controller."
 date: 2020-08-26T13:05:37-06:00
 draft: false
 image: "images/IngressDark.jpeg"

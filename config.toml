@@ -22,6 +22,7 @@ paginate = 5 #frontpage pagination
   #header_image = "images/MeAtJackson.jpeg"
   header_image = "images/main_go_wideandtall_darklayer.jpeg"
   title = "Software Engineering"
+  description = "Thoughts on software engineering, cloud architectures, Kuberentes deployments, and Raspberry Pis"
   slogan = "$ grep -rni \"The how's and why's\" ."
   SEOTitle = "Rich Youngkin Blog"
   keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, Microservice"
@@ -38,12 +39,14 @@ paginate = 5 #frontpage pagination
   title_404 = "We couldn't find what you were looking for..."
   omit_categories = false
 
-  showtoc = false
-
   friends = false
   bookmarks = false
 
-# leancloud storage for page view counter
+  # comments
+  hyvor = true
+  github = false
+
+  # leancloud storage for page view counter
   page_view_conter = false 
   leancloud_app_id = ""
   leancloud_app_key = ""
