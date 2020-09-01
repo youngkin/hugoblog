@@ -155,7 +155,9 @@ draft: true
 ---
 ```
 
-You can inspect the generated file. The generated content comes from the `archetypes/default.md` file which is the template used for all new content. The content between the `---` lines is metadata for the page. Text after the 2nd `---` line is the body of the web page.
+You can inspect the generated file. The generated content comes from the `archetypes/default.md` file which is the template used for all new content. The content between the `---` lines is "front matter" for the page. Text after the 2nd `---` line is the body of the web page.
+
+> "Front matter" is the Hugo term for the information at the top of the page used to create a page's rendered title as well as some other metadata that is placed in the associated HTML file's `<meta>` tags in the page's `head` section. Don't worry too much if you don't understand all this.
 
 The next step is to test the installation by starting the Hugo web server and navigating to the development site:
 
@@ -249,7 +251,7 @@ paginate = 5000 #frontpage pagination
 
 ### Archetypes
 
-Archetypes are templates used by Hugo when new web pages are created via the  `hugo new <some-post-file>` command. They are useful because there is a metadata section at the top of each page describing some basic characteristics like the page title, description, and date. Without archetypes this metadata would have to be manually typed or copied on each new web page. While Hugo installs a default archetype at `archetypes/default.md`, you'll probably want to create your own. I have a file located at `archetypes/post.md`. The name `post.md` is meaningful to Hugo. It is the archetype Hugo will use, if present, when generating posts. There are other archetype file names and locations that are meaningful to Hugo. You can find more detail about archetypes at the [Hugo Archetypes](https://gohugo.io/content-management/archetypes/) page.
+Archetypes are templates used by Hugo when new web pages are created via the  `hugo new <some-post-file>` command. They are useful because there is a "front matter" section at the top of each page describing some basic characteristics like the page title, description, and date. Without archetypes this "front matter" would have to be manually typed or copied on each new web page. While Hugo installs a default archetype at `archetypes/default.md`, you'll probably want to create your own. I have a file located at `archetypes/post.md`. The name `post.md` is meaningful to Hugo. It is the archetype Hugo will use, if present, when generating posts. There are other archetype file names and locations that are meaningful to Hugo. You can find more detail about archetypes at the [Hugo Archetypes](https://gohugo.io/content-management/archetypes/) page.
 
 My `archetypes/post.md` file looks like this:
 
@@ -271,7 +273,7 @@ categories: []
 
 Here's what each line means:
 
-* `---` - these lines delineate the metadata section of the page
+* `---` - these lines delineate the "front matter" section of the page
 * `title: "{{ replace .Name "-" " " | title }}"` - specifies that the page's title will be generated from the file name after replacing dashes ('-') with spaces. This is a quick, handy, way to generate titles automatically. For example, `My-New-Post.md` becomes "My New Post" in the page's title.
 * `description` - specifies text to be used in an article's summary on the home page. This text will not be displayed in the article. It is related to the `# Descriptive text here...` line a little lower in the file.
 * `date` - replaced with the date the post was created. The generated date can be changed if you want to modify it, for example after updating the page. There are more sophisticated things you can do with dates, such as published date, last modified date, expiration date, etc. Those all have special meanings. See the [Hugo documentation](https://gohugo.io/getting-started/configuration/#configure-dates) for more details.
@@ -280,7 +282,7 @@ Here's what each line means:
 * `image` - specifies the image to display at the top of the page. If not specified, the `header_image` in `config.toml` will be used.
 * `tags` - specifies a comma separated list of low level subject groupings. Taking my example from above, U.S. states might be an appropriate subject grouping for pages pertaining to U.S. states. For example, `tags: ["Colorado", "Utah", ...]`.
 * `categories` - specifies a specifies a comma separated list of high level subject groupings. Again, taking my example from above, some U.S. states can be put in the category of "Best Ski Areas in the World".
-* `# Descriptive text here...` & `<!--more-->` - These lines are used as an alternative to the `description` line in the metadata section. This can be used if the amount of descriptive text desired is more than can be comfortably put in the `description` line. `<!--more..>` is used to indicate the end of this type of descriptive text. Unlike `description` above, this text does appear in the article. An alternative to both the `description` line and these lines is to not specify either. In this case the first 70 words of the article will be used in the article summary.
+* `# Descriptive text here...` & `<!--more-->` - These lines are used as an alternative to the `description` line in the "front matter" section. This can be used if the amount of descriptive text desired is more than can be comfortably put in the `description` line. `<!--more..>` is used to indicate the end of this type of descriptive text. Unlike `description` above, this text does appear in the article. An alternative to both the `description` line and these lines is to not specify either. In this case the first 70 words of the article will be used in the article summary.
 
 ### Writing
 
@@ -326,7 +328,50 @@ When you're ready to publish the site you'll need to generate the static content
 ./deploy.sh
 ```
 
-This command does several things:
+This file is a slightly modified version of the `deploy.sh` file described on the Hugo [Hosting on GitHub](https://gohugo.io/hosting-and-deployment/hosting-on-github/) tutorial. The `deploy.sh` script looks like this:
+
+```
+#!/bin/sh
+
+# If a command fails then the deploy stops
+set -e
+
+printf "\033[0;32mDeploying updates to GitHub...\033[0m\n"
+
+# Create commit message
+msg="rebuilding site $(date)"
+if [ -n "$*" ]; then
+	msg="$*"
+fi
+
+# Build the project.
+echo ""
+echo ""
+echo "Committing changes to $(pwd)"
+hugo -D
+
+# Go To Public folder
+cd public
+
+# Add 'public' (Github Pages repo) changes to git and commit/push.
+echo ""
+echo ""
+echo "Committing changes to $(pwd)"
+git add .
+git commit -m "$msg"
+git push origin master
+
+# Add this repos changes to git and commit/push. First 'cd' out of public
+cd ..
+echo ""
+echo ""
+echo "Committing changes to $(pwd)"
+git add .
+git commit -m "$msg"
+git push origin master
+```
+
+`deploy.sh` does several things:
 
 1. It builds the static content via `hugo -D`
 2. It stages everything in the `project-root/public` directory for commit via `git add .`
@@ -476,8 +521,8 @@ The bottom of each blog post will now look something like this:
 
 To get exactly this appearance do this from the Hyvor Console:
 
-1. To match the blog's theme colors, click on the "Appearance" entry in the left-hand navigation section. Then click on "Accent Color" and in the resulting color picker in the bottom left enter the hex color code `#555555`. Then click "Save".
-2. To remove the emoji reactions, click on the "Community" entry in the left-hand navigation section. The second item in settings, just under "Comments Note", is "Reactions". Turn this off and click "Save".
+1. To match the blog's theme colors, click on the "Appearance" entry in the left-hand navigation section of your Hyvor Console. Then click on "Accent Color" and in the resulting color picker in the bottom left enter the hex color code `#555555`. Then click "Save".
+2. To remove the emoji reactions, click on the "Community" entry in the left-hand navigation section of your Hyvor Console. The second item in settings, just under "Comments Note", is "Reactions". Turn this off and click "Save".
 
 ### Optional Table of Contents
 
@@ -499,7 +544,7 @@ categories: []
 <!--more-->
 ```
 
-If set to true then Hugo will generate a table of contents for the associated article. I changed the original `themes/hugo-theme-cleanwhite/layouts/_default/single.html` file **FROM**:
+If `toc` is set to true then Hugo will generate a table of contents for the associated article. I changed the original `themes/hugo-theme-cleanwhite/layouts/_default/single.html` file **FROM**:
 
 ```html
 <!-- Post Content -->
@@ -545,7 +590,7 @@ If set to true then Hugo will generate a table of contents for the associated ar
                 {{ .Content }}
 ```
 
-Specifically the block starting with `{{ if not (eq (.Param "showtoc") false) }} ...` was changed to the block starting with `{{ if (.Params.toc) }} ...`.
+Specifically the block starting with `{{ if not (eq (.Param "showtoc") false) }} ...` was changed to the block starting with `{{ if (.Params.toc) }} ...`. So instead of looking for the `showtoc` parameter in `config.toml`, `.Params.toc` directs the HTML template to look in the "front matter" at the top of an article for a `toc` entry.
 
 ### Theme Customizations
 
@@ -687,7 +732,7 @@ The color of the "About Me" short bio and the social badges was too light for my
 }
 ```
 
-As above, the text and border color of the "Featured Tags" was too light for me. I changed this to a darker gray by changing the `.sidebar-container .tags a {...}` `color` to `#555555` and the `.tags a {... color: ... border:...}` color and border elements to `#FFD700` and `1px solid rgba(255,215,0,0.8)` respectively. Here's the context for these changes:
+As above, the text and border color of the "Featured Tags" was too light for me. I changed this to a darker gray by changing the `.sidebar-container .tags a {...}` `border-color` to `#555555` and the `.tags a {... color: ... border:...}` color and border elements to `#FFD700` and `1px solid rgba(255,215,0,0.8)` respectively. Here's the context for these changes:
 
 ```css
 .sidebar-container .tags a {
