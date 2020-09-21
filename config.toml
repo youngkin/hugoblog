@@ -21,6 +21,7 @@ paginate = 5 #frontpage pagination
 [params]
   #header_image = "images/MeAtJackson.jpeg"
   header_image = "images/main_go_wideandtall_darklayer.jpeg"
+  logo_image = "images/YBrand_edit.png"
   title = "Software Engineering"
   description = "Thoughts on software engineering, cloud architectures, Kuberentes deployments, and Raspberry Pis"
   slogan = "$ grep -rni \"The how's and why's\" ."
@@ -28,7 +29,7 @@ paginate = 5 #frontpage pagination
   keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, Microservice"
  
   # Sidebar settings
-  sidebar_about_description = "Father, Husband, Skier, Cyclist, and, oh yeah, Software Developer"
+  sidebar_about_description = "Rich Youngkin - Father, Husband, Skier, Cyclist, and, oh yeah, Software Developer"
   sidebar_avatar = "images/MeAtJackson.jpeg" 
   about_me = true
 
