@@ -26,7 +26,7 @@ paginate = 5 #frontpage pagination
   description = "Thoughts on software engineering, cloud architectures, Kuberentes deployments, and Raspberry Pis"
   slogan = "$ grep -rni \"The how's and why's\" ."
   SEOTitle = "Rich Youngkin Blog"
-  keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, Microservice"
+  keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, GPIO, Microservice"
  
   # Sidebar settings
   sidebar_about_description = "Rich Youngkin - Father, Husband, Skier, Cyclist, and, oh yeah, Software Developer"
@@ -34,7 +34,7 @@ paginate = 5 #frontpage pagination
   about_me = true
 
   featured_tags = true 
-  featured_condition_size = 2 # How many posts have to have a given tag to be featured (greater-than)
+  featured_condition_size = 1 # How many posts have to have a given tag to be featured (greater-than)
 
   image_404 = "images/404-bg.jpg"
   title_404 = "We couldn't find what you were looking for..."
