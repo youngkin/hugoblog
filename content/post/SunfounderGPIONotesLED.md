@@ -1,6 +1,6 @@
 ---
-title: "Sunfounder Raspberry Pi Kit Notes for Go and C - Blinking LED"
-description: "Questions about Sunfounder RPi kits? Look no further!"
+title: "Raspberry Pi GPIO in Go an C - Blinking LED"
+description: "How to use the Raspberry Pi's GPIO pins to cause an LED to blink"
 date: 2021-09-11T13:13:42-06:00
 draft: false
 image: "images/sunfounderLED.jpeg"
@@ -93,6 +93,9 @@ First things first, we need a Go library to drive the GPIO interface. I'm using 
 2. It seems to be fairly complete
 3. It's relatively active
 4. It comes with example code and good documentation
+5. Its API is similar to WiringPi's
+
+Another option is [periph](https://github.com/periph/host) (code) with [documentation](https://periph.io/). It is more active and the documentation is very good, better than go-rpio. This project would be trivial to do using periph. Overall, for the LED examples I was able to find, go-rpio better matched what I was looking for, especially with regard to the [RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) using Pulse Width Modulation (PWM, more on this in the next article in the series). But this is an excellent alternative to go-rpio and vice-versa.
 
 You can just use the [rpio-go blinker.go example](https://github.com/stianeikeland/go-rpio/blob/master/examples/blinker/blinker.go). It uses `rpio.Pin.Toggle()`. I created a [Github respository](https://github.com/youngkin/gpio) that contains examples in both C and Go. My Go version of `blinker` uses direct writes instead of `rpio.Pin.Toggle`. I thought showing an optional way to do this would be helpful, especially since later projects will use direct writes. My [gpio respository](https://github.com/youngkin/gpio) uses Go's module system which will automatically download the `rpio-go` library when built. Here's my version of `blinker`. I won't be explaining Go sytax as I'm assuming familiarity with Go.
 

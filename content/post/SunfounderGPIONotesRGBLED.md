@@ -1,6 +1,6 @@
 ---
-title: "Sunfounder Raspberry Pi Kit Notes for Go and C - RGB LED"
-description: "Driving an RGB LED via Raspberry Pi GPIO in Go and C"
+title: "Raspberry Pi GPIO in Go an C - RGB LED"
+description: "Use Pulse Width Modulation (PWM) to drive an RGB LED in Go and C"
 date: 2021-09-14T13:13:42-06:00
 draft: false
 image: "images/sunfounderLED.jpeg"
@@ -10,7 +10,7 @@ GHissueID: 1
 toc: true
 ---
 
-This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder RGB LED project](../sunfoundergpionotesled/). You can find the full series [here](../../categories/gpio). The code samples will be in Go and C. 
+This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder RGB LED project](../sunfoundergpionotesled/). You can find the full series [here](../../categories/gpio). It explores the use of Pulse Width Modulation (PWM) to drive an RGB LED as well as how to control an individual's LED brightness. The code samples will be in Go and C.
 
 <!--more-->
 
@@ -289,13 +289,15 @@ Here is a slightly modified version of the Sunfounder C program that the control
  92 }
  ```
 
-This version of RGB LED is very similar to the software PWM version above. The primary difference is that the pin mode is set to `PWM_OUTPUT` vs. the use of `softPwmCreate`. It also uses `pwmWrite` instead of `softPwmWrite`.
+This version of RGB LED is very similar to the software PWM version above. It also uses the same pins as the above example. The primary difference is that the pin mode is set to `PWM_OUTPUT` vs. the use of `softPwmCreate`. It also uses `pwmWrite` instead of `softPwmWrite`.
 
 The program is run using root privileges with `sudo ./rgbledHardware`. `sudo` is needed because direct hardware access is limited to users with root privileges. `sudo` provides root privileges to commands prefixed with `sudo`.
 
+When running the program you'll notice that the RGB LED doesn't produce the expected colors. Sometimes it might show purple when it should be showing blue. Sometimes it might be turned off completely when it's supposed to be showing a color. This behavior occurs because BCM pin 13 (blue) and BCM pin 19 (red) are on the same hardware channel. As explained above, when a signal is sent to one channel it will propagate to both pins that share that channel. Green, on BCM pin 12, is unaffected. One behavior I don't understand is why sometimes the LED is off when it should be showing a color. This only happens for red (BCM19) and blue (BCM 13) pins. Perhaps the pins that share a channel don't produce a signal at exactly the same time. Imagine a case where the blue pin is set to 0xff and the red pin is set to 0x00. If the red pin's signal comes in slightly after the blue signal it would override the blue pin signal turning the LED off. The takeaway from all this is that for all intents and purposes, there are only 2 hardware PWM pins can be in use at the same time, and they can't be on the same channel.
+
 ## RGB LED in Go
 
-This version of RGB LED will work with the same breadboard setup as the C version.
+This version of RGB LED will work with the same breadboard setup as the C version. Unlike the Sunfounder C version, and the first C version in this article, the Go library only supports hardware PWM.
 
 First things first, we need a Go library to drive the GPIO interface. I'm using [go-rpio](https://github.com/stianeikeland/go-rpio) for several reasons:
 
@@ -303,9 +305,169 @@ First things first, we need a Go library to drive the GPIO interface. I'm using 
 2. It seems to be fairly complete
 3. It's relatively active
 4. It comes with example code and good documentation
+5. Its API is similar to WiringPi's
 
-You can just use the [](). It uses `rpio.Pin.Toggle()`. I created a [Github respository](https://github.com/youngkin/gpio) that contains examples in both C and Go. My Go version of `blinker` uses direct writes instead of `rpio.Pin.Toggle`. I thought showing an optional way to do this would be helpful, especially since later projects will use direct writes. My [gpio respository](https://github.com/youngkin/gpio) uses Go's module system which will automatically download the `rpio-go` library when built. Here's my version of `blinker`. I won't be explaining Go sytax as I'm assuming familiarity with Go.
+Another option is [periph](https://github.com/periph/host) (code) with [documentation](https://periph.io/). It is more active and the documentation is very good, better than go-rpio. But for the LED examples I was able to find, go-rpio better matched what I was looking for, especially with regard to this project. But this is an excellent alternative to go-rpio and vice-versa.
 
+### Example 1 - RGB LED with hardware PWM
+
+This program can operate in one of 2 ways. First, it can operate as a fully hardware PWM implementation, similar to [Hardware PWM in C](#hardware-pwm-in-c). It can also operate in a mixed-mode, part hardware and part software PWM. See the comments on lines 32-38 and lines 44-52 for details. Switching modes requires commenting/uncommenting code blocks as described in those comments.
+
+```go
+  1 //
+  2 // Hardware PWM pins include WiringPi pins 1, 26, 23, 24 (BCM 18, 12, 13, and 19 respectively).
+  3 // For practical purposes only 2 are usable as the other 2 are linked, turn one on they both turn on.
+  4 // Pins 24 & 26 (BCM 19 & 12) and Pins 1 & 23 (BCM 13 and 18) are independent. Pins 1 and 26 (BCM 18 & 12)
+  5 // are linked. Set one and the other will also be set. Ditto for pins 23 & 24 (BCM 13 & 19). In addition,
+  6 // writing to linked pins and one other results in inconsistent results. The independent pin will always
+  7 // be set, but the dependent pins won't always be set correctly. This could be a result of timing issues
+  8 // that affect the ordering of when signals are sent to pins on the same channel.
+  9 //
+ 10
+ 11 package main
+ 12
+ 13 import (
+ 14     "bufio"
+ 15     "fmt"
+ 16     "os"
+ 17     "strconv"
+ 18     "strings"
+ 19
+ 20     "github.com/stianeikeland/go-rpio/v4"
+ 21 )
+ 22
+ 23 const (
+ 24     ledPinRed   = rpio.Pin(19)
+ 25     ledPinGreen = rpio.Pin(18)
+ 26     ledPinBlue  = rpio.Pin(13)
+ 27     freq        = 100000
+ 28     cycle       = 1024
+ 29 )
+ 30
+ 31 func ledColorSet(redVal, greenVal, blueVal uint32) {
+ 32     // This doesn't work as expected because GPIO pins 19 & 13 are essentially linked. This
+ 33     // is also true for GPIO pins 18 & 12, but since pin 12 isn't used here pin 18, green,
+ 34     // works as expected. So, when a blueVal or redVal are provided, the same value
+ 35     // is propagated to the linked pin. So for example, if redVal is 0 and blueVal
+ 36     // is 255, both the red and blue leds will light up (purple).
+ 37     //
+ 38     // Uncomment these lines if you want to see this behavior.
+ 39     ledPinGreen.Mode(rpio.Pwm)
+ 40     ledPinBlue.Mode(rpio.Pwm)
+ 41     ledPinGreen.DutyCycle(greenVal, cycle)
+ 42     ledPinBlue.DutyCycle(blueVal, cycle)
+ 43
+ 44     // Given the explanation above, a workaround is to set only accept a redVal of
+ 45     // 255. When this is the case the blue and green pins are changed to output mode
+ 46     // and turned off, resulting in only a red LED. If redVal isn't 255, then it's
+ 47     // disabled (like blue and green above) and the blue/green pins are reenabled
+ 48     // and set to their respective values. This is obviously a hack since the red
+ 49     // pin can only be set to 255 and can't be used in conjuction with the blue and
+ 50     // green pins.
+ 51     //
+ 52     // Comment these lines if you don't want to see this behavior.
+ 53     //  if redVal == 255 {
+ 54     //      ledPinRed.Mode(rpio.Pwm)
+ 55     //      ledPinRed.DutyCycle(redVal, cycle)
+ 56     //
+ 57     //      //ledPinGreen.Mode(rpio.Output)
+ 58     //      ledPinGreen.DutyCycle(greenVal, cycl)
+ 59     //      ledPinBlue.Mode(rpio.Output)
+ 60     //      ledPinBlue.Low()
+ 61     //  } else {
+ 62     //      ledPinRed.Mode(rpio.Output)
+ 63     //      ledPinRed.Low()
+ 64     //
+ 65     //      ledPinGreen.Mode(rpio.Pwm)
+ 66     //      ledPinBlue.Mode(rpio.Pwm)
+ 67     //      ledPinGreen.DutyCycle(greenVal, cycle)
+ 68     //      ledPinBlue.DutyCycle(blueVal, cycle)
+ 69     //  }
+ 70 }
+ 71
+ 72 func ledInit() {
+ 73     ledPinRed.Mode(rpio.Pwm)
+ 74     ledPinRed.Freq(freq)
+ 75     ledPinRed.DutyCycle(0, cycle)
+ 76
+ 77     ledPinGreen.Mode(rpio.Pwm)
+ 78     ledPinGreen.Freq(freq)
+ 79     ledPinGreen.DutyCycle(1, cycle)
+ 80
+ 81     ledPinBlue.Mode(rpio.Pwm)
+ 82     ledPinBlue.Freq(freq)
+ 83     ledPinBlue.DutyCycle(1023, cycle)
+ 84 }
+ 85
+ 86 func main() {
+ 87     if err := rpio.Open(); err != nil {
+ 88         os.Exit(1)
+ 89     }
+ 90     defer rpio.Close()
+ 91
+ 92     ledInit()
+ 93
+ 94     reader := bufio.NewReader(os.Stdin)
+ 95
+ 96     for {
+ 97         //
+ 98         // Get RGB values
+ 99         //
+100         fmt.Println("Enter red value (0 to 1023):")
+101         red, err := reader.ReadString('\n')
+102         if err != nil {
+103             fmt.Printf("Error reading from StdIn, %s", err)
+104             os.Exit(1)
+105         }
+106         red = strings.TrimSuffix(red, "\n")
+107
+108         fmt.Println("Enter green value (0 to 1023):")
+109         green, err := reader.ReadString('\n')
+110         if err != nil {
+111             fmt.Printf("Error reading from StdIn, %s", err)
+112             os.Exit(1)
+113         }
+114         green = strings.TrimSuffix(green, "\n")
+115
+116         fmt.Println("Enter blue value (0 to 1023):")
+117         blue, err := reader.ReadString('\n')
+118         if err != nil {
+119             fmt.Printf("Error reading from StdIn, %s", err)
+120             os.Exit(1)
+121         }
+122         blue = strings.TrimSuffix(blue, "\n")
+123
+124         fmt.Printf("You entered red: %s, green: %s, blue: %s\n", red, green, blue)
+125
+126         //
+127         // Convert string RGB values to int
+128         //
+129         blueNum, _ := strconv.Atoi(blue)
+130         redNum, _ := strconv.Atoi(red)
+131         greenNum, _ := strconv.Atoi(green)
+132         fmt.Printf("red: %x, green: %x, blue: %x\n", redNum, greenNum, blueNum)
+133
+134         //
+135         // Set LED color
+136         //
+137         ledColorSet(uint32(redNum), uint32(greenNum), uint32(blueNum))
+138
+139         //
+140         // Quit?
+141         //
+142         fmt.Printf("Enter 'q' to quit\n")
+143         quit, err := reader.ReadString('\n')
+144         if err != nil {
+145             fmt.Printf("Error reading from StdIn, %s, err")
+146             os.Exit(1)
+147         }
+148         if quit == "q\n" {
+149             ledColorSet(0, 0, 0)
+150             break
+151         }
+152     }
+153 }
+```
 
 ## Summary
 
