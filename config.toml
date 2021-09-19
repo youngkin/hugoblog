@@ -1,5 +1,5 @@
 baseurl = "https://youngkin.github.io"
-title = "Rich Youngkin"
+title = "Rich Youngkin's software engineering blog"
 theme = "hugo-theme-cleanwhite-rsy"
 languageCode = "en-us"
 # Enable comments by entering your Disqus shortname
