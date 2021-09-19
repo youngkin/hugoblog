@@ -88,105 +88,108 @@ The C code described in the Sunfounder [RGB LED project](https://docs.sunfounder
 
 Here is a slightly modified version of the Sunfounder C program that the controls an RGB LED:
 
-```go
-  1 //
-  2 // Build - gcc -o rgbled rgbled.c  -lwiringPi -lpthread
-  3 //
-  4 #include <wiringPi.h>
-  5 #include <softPwm.h>
-  6 #include <stdio.h>
-  7 #include <signal.h>
-  8 #include <stdlib.h>
-  9
- 10 #define uchar unsigned char
- 11 #define LedPinRed    24
- 12 #define LedPinGreen  1
- 13 #define LedPinBlue   23
- 14
- 15 static volatile int keepRunning = 1;
- 16
- 17 void interruptHandler(int);
- 18
- 19 void ledInit(void) {
- 20     softPwmCreate(LedPinRed,  0, 100);
- 21     softPwmCreate(LedPinGreen,0, 100);
- 22     softPwmCreate(LedPinBlue, 0, 100);
- 23 }
- 24
- 25 void ledColorSet(uchar r_val, uchar g_val, uchar b_val) {
- 26     softPwmWrite(LedPinRed,   r_val);
- 27     softPwmWrite(LedPinGreen, g_val);
- 28     softPwmWrite(LedPinBlue,  b_val);
- 29 }
- 30
- 31 int main(void) {
- 32     if(wiringPiSetup() == -1){ //when initialize wiring failed, printf messageto screen
- 33         printf("setup wiringPi failed !");
- 34         return 1;
- 35     }
- 36
- 37     signal(SIGINT, interruptHandler);
- 38     printf("Hit ^-c to exit\n");
+```c
+  1 // Copyright (c) 2021 Richard Youngkin. All rights reserved.
+  2 // Use of this source code is governed by a MIT-style
+  3 // license that can be found in the LICENSE file.
+  4 //
+  5 // Build - gcc -o rgbled rgbled.c  -lwiringPi -lpthread
+  6 //
+  7 #include <wiringPi.h>
+  8 #include <softPwm.h>
+  9 #include <stdio.h>
+ 10 #include <signal.h>
+ 11 #include <stdlib.h>
+ 12
+ 13 #define uchar unsigned char
+ 14 #define LedPinRed    24
+ 15 #define LedPinGreen  1
+ 16 #define LedPinBlue   23
+ 17
+ 18 static volatile int keepRunning = 1;
+ 19
+ 20 void interruptHandler(int);
+ 21
+ 22 void ledInit(void){
+ 23     softPwmCreate(LedPinRed,  0, 0xff);
+ 24     softPwmCreate(LedPinGreen,0, 0xff);
+ 25     softPwmCreate(LedPinBlue, 0, 0xff);
+ 26 }
+ 27
+ 28 void ledColorSet(uchar r_val, uchar g_val, uchar b_val) {
+ 29     softPwmWrite(LedPinRed,   r_val);
+ 30     softPwmWrite(LedPinGreen, g_val);
+ 31     softPwmWrite(LedPinBlue,  b_val);
+ 32 }
+ 33
+ 34 int main(void) {
+ 35     if(wiringPiSetup() == -1){ //when initialize wiring failed, printf messageto screen
+ 36         printf("setup wiringPi failed !");
+ 37         return 1;
+ 38     }
  39
- 40     ledInit();
- 41     while(keepRunning) {
- 42             printf("Red\n");
- 43             ledColorSet(0xff,0,0);
- 44             delay(1000);
- 45
- 46             printf("Green\n");
- 47             ledColorSet(0,0xff,0);
- 48             delay(1000);
- 49
- 50             printf("Blue\n");
- 51             ledColorSet(0x00,0x00,0xff);
- 52             delay(1000);
- 53
- 54             printf("Yellow\n");
- 55             ledColorSet(0xff,0xff,0x00);
- 56             delay(1000);
- 57
- 58             printf("Purple\n");
- 59             ledColorSet(0xff,0x00,0xff);
- 60             delay(1000);
- 61
- 62             printf("Cyan\n");
- 63             ledColorSet(0xc0,0xff,0x3e);
- 64             delay(1000);
- 65
- 66             printf("Off\n");
- 67             ledColorSet(0,0,0);
- 68             delay(1000);
- 69     }
- 70
- 71     return 0;
- 72 }
+ 40     signal(SIGINT, interruptHandler);
+ 41     printf("Hit ^-c to exit\n");
+ 42
+ 43     ledInit();
+ 44     while(keepRunning) {
+ 45             printf("Red\n");
+ 46             ledColorSet(0xff,0,0);
+ 47             delay(1000);
+ 48
+ 49             printf("Green\n");
+ 50             ledColorSet(0,0x32,0);
+ 51             delay(1000);
+ 52
+ 53             printf("Blue\n");
+ 54             ledColorSet(0x00,0x00,0xff);
+ 55             delay(1000);
+ 56
+ 57             printf("Yellow\n");
+ 58             ledColorSet(0xff,0x32,0x00);
+ 59             delay(1000);
+ 60
+ 61             printf("Purple\n");
+ 62             ledColorSet(0xff,0x00,0xff);
+ 63             delay(1000);
+ 64
+ 65             printf("Cyan\n");
+ 66             ledColorSet(0xc0,0x32,0xff);
+ 67             delay(1000);
+ 68
+ 69             printf("Off\n");
+ 70             ledColorSet(0,0,0);
+ 71             delay(1000);
+ 72     }
  73
- 74 void interruptHandler(int sig) {
- 75     // Turn off LED
- 76     // Don't understand why, but ledColorSet(0,0,0); doesn't work
- 77     pinMode(LedPinRed, OUTPUT);
- 78     digitalWrite(LedPinRed, LOW);
- 79     pinMode(LedPinGreen, OUTPUT);
- 80     digitalWrite(LedPinGreen, LOW);
- 81     pinMode(LedPinBlue, OUTPUT);
- 82     digitalWrite(LedPinBlue, LOW);
- 83
- 84     printf("\nExiting...\n");
- 85
- 86     exit(0);
- 87 }
+ 74     return 0;
+ 75 }
+ 76
+ 77 void interruptHandler(int sig) {
+ 78     // Turn off LED
+ 79     // Don't understand why, but ledColorSet(0,0,0); doesn't work
+ 80     pinMode(LedPinRed, OUTPUT);
+ 81     digitalWrite(LedPinRed, LOW);
+ 82     pinMode(LedPinGreen, OUTPUT);
+ 83     digitalWrite(LedPinGreen, LOW);
+ 84     pinMode(LedPinBlue, OUTPUT);
+ 85     digitalWrite(LedPinBlue, LOW);
+ 86
+ 87     printf("\nExiting...\n");
+ 88
+ 89     exit(0);
+ 90 }
  ```
 
- Line 2 provides the command needed to build the program - `gcc -o rgbled rgbled.c  -lwiringPi -lpthread`. The `-l` flags reference the libraries needed to build the program. `-lwiringPi` refers to the WiringPi library. It should be installed in the correct place along with WiringPi and the build command should just work. Libraries are usually located in `/usr/lib`.
+ Line 5 provides the command needed to build the program - `gcc -o rgbled rgbled.c  -lwiringPi -lpthread`. The `-l` flags reference the libraries needed to build the program. `-lwiringPi` refers to the WiringPi library. It should be installed in the correct place along with WiringPi and the build command should just work. Libraries are usually located in `/usr/lib`.
 
- Note the pin numbering used in lines 11 - 13. I'm using WiringPi pins 24, 1, and 23 for red, green, and blue, which correspond to BCM pins 19, 18, and 13 respectively. The Sunfounder wiring diagram above using BCM pins 17, 18, and 27 for red, green, and blue, which correspond to WiringPi pins 0, 1, and 2 respectively. The Sunfounder C code uses the pins as shown in the above diagram. Make sure your breadboard is wired to BCM pins 19, 18, and 13 for red, green, and blue; wiringPi pins 24, 1, and 23, or change the above code to to use 0, 1, and 2 for `LedPinRed`, `LedPinGreen`, and `LedPinBlue` respectively. This will be good practice for navigating your way around a breadboard. See the Sunfounder page [GPIO Extension Board](https://docs.sunfounder.com/projects/raphael-kit/en/latest/gpio_extension_board.html) for a quick cross reference between BCM, board, and WiringPi pin numbers.
+ Note the pin numbering used in lines 14-16. I'm using WiringPi pins 24, 1, and 23 for red, green, and blue, which correspond to BCM pins 19, 18, and 13 respectively. The Sunfounder wiring diagram above using BCM pins 17, 18, and 27 for red, green, and blue, which correspond to WiringPi pins 0, 1, and 2 respectively. The Sunfounder C code uses the pins as shown in the above diagram. Make sure your breadboard is wired to BCM pins 19, 18, and 13 for red, green, and blue; wiringPi pins 24, 1, and 23, or change the above code to to use 0, 1, and 2 for `LedPinRed`, `LedPinGreen`, and `LedPinBlue` respectively. This will be good practice for navigating your way around a breadboard. See the Sunfounder page [GPIO Extension Board](https://docs.sunfounder.com/projects/raphael-kit/en/latest/gpio_extension_board.html) for a quick cross reference between BCM, board, and WiringPi pin numbers.
 
- The `softPwm*` functions called on lines 20-22 and 26-28 indicate that software PWM is being used.
+ The `softPwm*` functions called on lines 23-25 and 29-31 indicate that software PWM is being used.
 
  The calls to `ledColorSet(...)` within the `while(keepRunning)` loop use hex numbers to set the colors. These are used to generate the full range of available colors. I did change the values somewhat as the green LED used apparently has less resistance as it's quite a bit brighter than the red and blue LEDs and therefore throws off the generated colors. Similarly, the blue LED seems to have more resistance as it is quite a bit dimmer than the other 2 LEDs. Changing the values, at least for my specific RGB LED, generated truer colors.
 
- Line 37 registers an interrupt handler to catch the SIGINT interrupt generated when ^-C is entered at the keyboard. Line 17 declares the interrupt handler function. Lines 74 thru 87 implement the interrupt handler function. Within that function the LED is turned off.
+ Line 40 registers an interrupt handler to catch the SIGINT interrupt generated when ^-C is entered at the keyboard. Line 20 declares the interrupt handler function. Lines 77 thru 90 implement the interrupt handler function. Within that function the LED is turned off.
 
  The program can be run, after compiling, using `./rgbled`.
 
@@ -195,98 +198,101 @@ Here is a slightly modified version of the Sunfounder C program that the control
  Since the Sunfounder documentation doesn't include a hardware PWM solution in C I decided to create one for myself. Partly to assure myself that the hardware PWM behavior I saw using the Go go-rpio library wasn't limited to that library. 
 
 ```c
-  1 //
-  2 // Build - gcc -o rgbledHardware rgbledHardware.c  -lwiringPi -lpthread
-  3 //
-  4 #include <wiringPi.h>
-  5 #include <softPwm.h>
-  6 #include <stdio.h>
-  7 #include <signal.h>
-  8 #include <stdlib.h>
-  9
- 10 #define uchar unsigned char
- 11 #define LedPinRed    24
- 12 #define LedPinGreen  1
- 13 #define LedPinBlue   23
- 14
- 15 static volatile int keepRunning = 1;
- 16
- 17 void interruptHandler(int);
- 18
- 19 //
- 20 // Hardware PWM pins include WiringPi pins 1, 26, 23, 24 (BCM 18, 12, 13, and 19 respectively).
- 21 // For practical purposes only 2 are usable as the other 2 are linked, turn one on they both turn on.
- 22 // Pins 24 & 26 (BCM 19 & 12) and Pins 1 & 23 (BCM 13 and 18) are independent. Pins 1 and 26 (BCM 18 & 12)
- 23 // are linked. Set one and the other will also be set. Ditto for pins 23 & 24 (BCM 13 & 19). In addition,
- 24 // Writing to linked pins and one other results in inconsistent results. The independent pin will always
- 25 // be set, but the dependent pins won't always be set correctly.
- 26 //
- 27 void ledInit(void) {
- 28     pinMode(LedPinRed, PWM_OUTPUT);
- 29     pinMode(LedPinGreen, PWM_OUTPUT);
- 30     pinMode(LedPinBlue, PWM_OUTPUT);
- 31
- 32     pwmWrite(LedPinRed, 0xff);
- 33     pwmWrite(LedPinGreen, 0x32);
- 34     pwmWrite(LedPinBlue, 0xff);
- 35
- 36     delay(1000);
- 37     printf("Initialization complete\n");
- 38 }
- 39
- 40 void ledColorSet(uchar r_val, uchar g_val, uchar b_val) {
- 41     pwmWrite(LedPinRed, r_val);
- 42     pwmWrite(LedPinGreen, g_val);
- 43     pwmWrite(LedPinBlue, b_val);
- 44 }
- 45
- 46 int main(void) {
- 47     if(wiringPiSetup() == -1){ //when initialize wiring failed, printf messageto screen
- 48         printf("setup wiringPi failed !");
- 49         return 1;
- 50     }
- 51
- 52     signal(SIGINT, interruptHandler);
- 53     printf("Hit ^-c to exit\n");
+  1 // Copyright (c) 2021 Richard Youngkin. All rights reserved.
+  2 // Use of this source code is governed by a MIT-style
+  3 // license that can be found in the LICENSE file.
+  4 //
+  5 // Build - gcc -o rgbledHardware rgbledHardware.c  -lwiringPi -lpthread
+  6 //
+  7 #include <wiringPi.h>
+  8 #include <softPwm.h>
+  9 #include <stdio.h>
+ 10 #include <signal.h>
+ 11 #include <stdlib.h>
+ 12
+ 13 #define uchar unsigned char
+ 14 #define LedPinRed    24
+ 15 #define LedPinGreen  1
+ 16 #define LedPinBlue   23
+ 17
+ 18 static volatile int keepRunning = 1;
+ 19
+ 20 void interruptHandler(int);
+ 21
+ 22 //
+ 23 // Hardware PWM pins include WiringPi pins 1, 26, 23, 24 (BCM 18, 12, 13, and 19 respectively).
+ 24 // For practical purposes only 2 are usable as the other 2 are linked, turn one on they both turn on.
+ 25 // Pins 24 & 26 (BCM 19 & 12) and Pins 1 & 23 (BCM 13 and 18) are independent. Pins 1 and 26 (BCM 18 & 12)
+ 26 // are linked. Set one and the other will also be set. Ditto for pins 23 & 24 (BCM 13 & 19). In addition,
+ 27 // Writing to linked pins and one other results in inconsistent results. The independent pin will always
+ 28 // be set, but the dependent pins won't always be set correctly.
+ 29 //
+ 30 void ledInit(void) {
+ 31     pinMode(LedPinRed, PWM_OUTPUT);
+ 32     pinMode(LedPinGreen, PWM_OUTPUT);
+ 33     pinMode(LedPinBlue, PWM_OUTPUT);
+ 34
+ 35     pwmWrite(LedPinRed, 0xff);
+ 36     pwmWrite(LedPinGreen, 0x32);
+ 37     pwmWrite(LedPinBlue, 0xff);
+ 38
+ 39     delay(1000);
+ 40     printf("Initialization complete\n");
+ 41 }
+ 42
+ 43 void ledColorSet(uchar r_val, uchar g_val, uchar b_val) {
+ 44     pwmWrite(LedPinRed, r_val);
+ 45     pwmWrite(LedPinGreen, g_val);
+ 46     pwmWrite(LedPinBlue, b_val);
+ 47 }
+ 48
+ 49 int main(void) {
+ 50     if(wiringPiSetup() == -1){ //when initialize wiring failed, printf messageto screen
+ 51         printf("setup wiringPi failed !");
+ 52         return 1;
+ 53     }
  54
- 55     ledInit();
- 56     while(keepRunning) {
- 57             printf("Red\n");
- 58             ledColorSet(0xff,0x00,0x00);   //red
- 59             delay(2000);
- 60             printf("Green\n");
- 61             ledColorSet(0x00,0x32,0x00);   //green
+ 55     signal(SIGINT, interruptHandler);
+ 56     printf("Hit ^-c to exit\n");
+ 57
+ 58     ledInit();
+ 59     while(keepRunning) {
+ 60             printf("Red\n");
+ 61             ledColorSet(0xff,0x00,0x00);   //red
  62             delay(2000);
- 63             printf("Blue\n");
- 64             ledColorSet(0x00,0x00,0xff);   //blue
+ 63             printf("Green\n");
+ 64             ledColorSet(0x00,0x32,0x00);   //green
  65             delay(2000);
- 66             printf("Yellow\n");
- 67             ledColorSet(0xff,0x32,0x00);   //yellow
- 68             delay(1000);
- 69             printf("Purple\n");
- 70             ledColorSet(0xff,0x00,0xff);   //purple
+ 66             printf("Blue\n");
+ 67             ledColorSet(0x00,0x00,0xff);   //blue
+ 68             delay(2000);
+ 69             printf("Yellow\n");
+ 70             ledColorSet(0xff,0x32,0x00);   //yellow
  71             delay(1000);
- 72             printf("Cyan\n");
- 73             ledColorSet(0xc0,0x32,0xff);   //cyan
+ 72             printf("Purple\n");
+ 73             ledColorSet(0xff,0x00,0xff);   //purple
  74             delay(1000);
- 75     }
- 76     return 0;
- 77 }
- 78
- 79 void interruptHandler(int sig) {
- 80         // Turn off LED
- 81         // Don't understand why, but ledColorSet(0,0,0); doesn't work
- 82         pinMode(LedPinRed, OUTPUT);
- 83         digitalWrite(LedPinRed, LOW);
- 84         pinMode(LedPinGreen, OUTPUT);
- 85         digitalWrite(LedPinGreen, LOW);
- 86         pinMode(LedPinBlue, OUTPUT);
- 87         digitalWrite(LedPinBlue, LOW);
- 88
- 89         printf("\nExiting...\n");
- 90
- 91         exit(0);
- 92 }
+ 75             printf("Cyan\n");
+ 76             ledColorSet(0xc0,0x32,0xff);   //cyan
+ 77             delay(1000);
+ 78     }
+ 79     return 0;
+ 80 }
+ 81
+ 82 void interruptHandler(int sig) {
+ 83         // Turn off LED
+ 84         // Don't understand why, but ledColorSet(0,0,0); doesn't work
+ 85         pinMode(LedPinRed, OUTPUT);
+ 86         digitalWrite(LedPinRed, LOW);
+ 87         pinMode(LedPinGreen, OUTPUT);
+ 88         digitalWrite(LedPinGreen, LOW);
+ 89         pinMode(LedPinBlue, OUTPUT);
+ 90         digitalWrite(LedPinBlue, LOW);
+ 91
+ 92         printf("\nExiting...\n");
+ 93
+ 94         exit(0);
+ 95 }
  ```
 
 This version of RGB LED is very similar to the software PWM version above. It also uses the same pins as the above example. The primary difference is that the pin mode is set to `PWM_OUTPUT` vs. the use of `softPwmCreate`. It also uses `pwmWrite` instead of `softPwmWrite`.
@@ -314,159 +320,165 @@ Another option is [periph](https://github.com/periph/host) (code) with [document
 This program can operate in one of 2 ways. First, it can operate as a fully hardware PWM implementation, similar to [Hardware PWM in C](#hardware-pwm-in-c). It can also operate in a mixed-mode, part hardware and part software PWM. See the comments on lines 32-38 and lines 44-52 for details. Switching modes requires commenting/uncommenting code blocks as described in those comments.
 
 ```go
-  1 //
-  2 // Hardware PWM pins include WiringPi pins 1, 26, 23, 24 (BCM 18, 12, 13, and 19 respectively).
-  3 // For practical purposes only 2 are usable as the other 2 are linked, turn one on they both turn on.
-  4 // Pins 24 & 26 (BCM 19 & 12) and Pins 1 & 23 (BCM 13 and 18) are independent. Pins 1 and 26 (BCM 18 & 12)
-  5 // are linked. Set one and the other will also be set. Ditto for pins 23 & 24 (BCM 13 & 19). In addition,
-  6 // writing to linked pins and one other results in inconsistent results. The independent pin will always
-  7 // be set, but the dependent pins won't always be set correctly. This could be a result of timing issues
-  8 // that affect the ordering of when signals are sent to pins on the same channel.
-  9 //
- 10
- 11 package main
- 12
- 13 import (
- 14     "bufio"
- 15     "fmt"
- 16     "os"
- 17     "strconv"
- 18     "strings"
- 19
- 20     "github.com/stianeikeland/go-rpio/v4"
- 21 )
+  1 // Copyright (c) 2021 Richard Youngkin. All rights reserved.
+  2 // Use of this source code is governed by a MIT-style
+  3 // license that can be found in the LICENSE file.
+  4 //
+  5 // Hardware PWM pins include WiringPi pins 1, 26, 23, 24 (BCM 18, 12, 13, and 19 respectively).
+  6 // For practical purposes only 2 are usable as the other 2 are linked, turn one on they both turn on.
+  7 // Pins 24 & 26 (BCM 19 & 12) and Pins 1 & 23 (BCM 13 and 18) are independent. Pins 1 and 26 (BCM 18 & 12)
+  8 // are linked. Set one and the other will also be set. Ditto for pins 23 & 24 (BCM 13 & 19). In addition,
+  9 // writing to linked pins leads to inconsistent results. The independent pin will always
+ 10 // be set, but the dependent pins won't always be set correctly. This could be a result of timing issues
+ 11 // that affect the ordering of when signals are sent to pins on the same channel.
+ 12 //
+ 13
+ 14 package main
+ 15
+ 16 import (
+ 17     "bufio"
+ 18     "fmt"
+ 19     "os"
+ 20     "strconv"
+ 21     "strings"
  22
- 23 const (
- 24     ledPinRed   = rpio.Pin(19)
- 25     ledPinGreen = rpio.Pin(18)
- 26     ledPinBlue  = rpio.Pin(13)
- 27     freq        = 100000
- 28     cycle       = 1024
- 29 )
- 30
- 31 func ledColorSet(redVal, greenVal, blueVal uint32) {
- 32     // This doesn't work as expected because GPIO pins 19 & 13 are essentially linked. This
- 33     // is also true for GPIO pins 18 & 12, but since pin 12 isn't used here pin 18, green,
- 34     // works as expected. So, when a blueVal or redVal are provided, the same value
- 35     // is propagated to the linked pin. So for example, if redVal is 0 and blueVal
- 36     // is 255, both the red and blue leds will light up (purple).
- 37     //
- 38     // Uncomment these lines if you want to see this behavior.
- 39     ledPinGreen.Mode(rpio.Pwm)
- 40     ledPinBlue.Mode(rpio.Pwm)
- 41     ledPinGreen.DutyCycle(greenVal, cycle)
- 42     ledPinBlue.DutyCycle(blueVal, cycle)
- 43
- 44     // Given the explanation above, a workaround is to set only accept a redVal of
- 45     // 255. When this is the case the blue and green pins are changed to output mode
- 46     // and turned off, resulting in only a red LED. If redVal isn't 255, then it's
- 47     // disabled (like blue and green above) and the blue/green pins are reenabled
- 48     // and set to their respective values. This is obviously a hack since the red
- 49     // pin can only be set to 255 and can't be used in conjuction with the blue and
- 50     // green pins.
- 51     //
- 52     // Comment these lines if you don't want to see this behavior.
- 53     //  if redVal == 255 {
- 54     //      ledPinRed.Mode(rpio.Pwm)
- 55     //      ledPinRed.DutyCycle(redVal, cycle)
- 56     //
- 57     //      //ledPinGreen.Mode(rpio.Output)
- 58     //      ledPinGreen.DutyCycle(greenVal, cycl)
- 59     //      ledPinBlue.Mode(rpio.Output)
- 60     //      ledPinBlue.Low()
- 61     //  } else {
- 62     //      ledPinRed.Mode(rpio.Output)
- 63     //      ledPinRed.Low()
- 64     //
- 65     //      ledPinGreen.Mode(rpio.Pwm)
- 66     //      ledPinBlue.Mode(rpio.Pwm)
- 67     //      ledPinGreen.DutyCycle(greenVal, cycle)
- 68     //      ledPinBlue.DutyCycle(blueVal, cycle)
- 69     //  }
- 70 }
- 71
- 72 func ledInit() {
- 73     ledPinRed.Mode(rpio.Pwm)
- 74     ledPinRed.Freq(freq)
- 75     ledPinRed.DutyCycle(0, cycle)
- 76
- 77     ledPinGreen.Mode(rpio.Pwm)
- 78     ledPinGreen.Freq(freq)
- 79     ledPinGreen.DutyCycle(1, cycle)
- 80
- 81     ledPinBlue.Mode(rpio.Pwm)
- 82     ledPinBlue.Freq(freq)
- 83     ledPinBlue.DutyCycle(1023, cycle)
- 84 }
- 85
- 86 func main() {
- 87     if err := rpio.Open(); err != nil {
- 88         os.Exit(1)
- 89     }
- 90     defer rpio.Close()
+ 23     "github.com/stianeikeland/go-rpio/v4"
+ 24 )
+ 25
+ 26 var (
+ 27     ledPinRed   = rpio.Pin(19)
+ 28     ledPinGreen = rpio.Pin(18)
+ 29     ledPinBlue  = rpio.Pin(13)
+ 30     freq        = 100000
+ 31     cycle       = 1024
+ 32 )
+ 33
+ 34 func ledColorSet(redVal, greenVal, blueVal uint32) {
+ 35     // This doesn't work as expected because GPIO pins 19 & 13 are essentially linked. This
+ 36     // is also true for GPIO pins 18 & 12, but since pin 12 isn't used here pin 18, green,
+ 37     // works as expected. So, when a blueVal or redVal are provided, the same value
+ 38     // is propagated to the linked pin. So for example, if redVal is 0 and blueVal
+ 39     // is 255, both the red and blue leds will light up (purple).
+ 40     //
+ 41     // Uncomment these lines if you want to see this behavior.
+ 42     ledPinRed.Mode(rpio.Pwm)
+ 43     ledPinGreen.Mode(rpio.Pwm)
+ 44     ledPinBlue.Mode(rpio.Pwm)
+ 45
+ 46     ledPinRed.DutyCycle(redVal, uint32(cycle))
+ 47     ledPinGreen.DutyCycle(greenVal, uint32(cycle))
+ 48     ledPinBlue.DutyCycle(blueVal, uint32(cycle))
+ 49
+ 50     // Given the explanation above, a workaround is to set only accept a redVal of
+ 51     // 255. When this is the case the blue and green pins are changed to output mode
+ 52     // and turned off, resulting in only a red LED. If redVal isn't 255, then it's
+ 53     // disabled (like blue and green above) and the blue/green pins are reenabled
+ 54     // and set to their respective values. This is obviously a hack since the red
+ 55     // pin can only be set to 255 and can't be used in conjuction with the blue and
+ 56     // green pins.
+ 57     //
+ 58     // Comment these lines if you don't want to see this behavior.
+ 59     //  if redVal == 255 {
+ 60     //      ledPinRed.Mode(rpio.Pwm)
+ 61     //      ledPinRed.DutyCycle(redVal, cycle)
+ 62     //
+ 63     //      //ledPinGreen.Mode(rpio.Output)
+ 64     //      ledPinGreen.DutyCycle(greenVal, cycl)
+ 65     //      ledPinBlue.Mode(rpio.Output)
+ 66     //      ledPinBlue.Low()
+ 67     //  } else {
+ 68     //      ledPinRed.Mode(rpio.Output)
+ 69     //      ledPinRed.Low()
+ 70     //
+ 71     //      ledPinGreen.Mode(rpio.Pwm)
+ 72     //      ledPinBlue.Mode(rpio.Pwm)
+ 73     //      ledPinGreen.DutyCycle(greenVal, cycle)
+ 74     //      ledPinBlue.DutyCycle(blueVal, cycle)
+ 75     //  }
+ 76 }
+ 77
+ 78 func ledInit() {
+ 79     ledPinRed.Mode(rpio.Pwm)
+ 80     ledPinRed.Freq(freq)
+ 81     ledPinRed.DutyCycle(0, uint32(cycle))
+ 82
+ 83     ledPinGreen.Mode(rpio.Pwm)
+ 84     ledPinGreen.Freq(freq)
+ 85     ledPinGreen.DutyCycle(1, uint32(cycle))
+ 86
+ 87     ledPinBlue.Mode(rpio.Pwm)
+ 88     ledPinBlue.Freq(freq)
+ 89     ledPinBlue.DutyCycle(1023, uint32(cycle))
+ 90 }
  91
- 92     ledInit()
- 93
- 94     reader := bufio.NewReader(os.Stdin)
- 95
- 96     for {
- 97         //
- 98         // Get RGB values
- 99         //
-100         fmt.Println("Enter red value (0 to 1023):")
-101         red, err := reader.ReadString('\n')
-102         if err != nil {
-103             fmt.Printf("Error reading from StdIn, %s", err)
-104             os.Exit(1)
-105         }
-106         red = strings.TrimSuffix(red, "\n")
-107
-108         fmt.Println("Enter green value (0 to 1023):")
-109         green, err := reader.ReadString('\n')
-110         if err != nil {
-111             fmt.Printf("Error reading from StdIn, %s", err)
-112             os.Exit(1)
-113         }
-114         green = strings.TrimSuffix(green, "\n")
-115
-116         fmt.Println("Enter blue value (0 to 1023):")
-117         blue, err := reader.ReadString('\n')
-118         if err != nil {
-119             fmt.Printf("Error reading from StdIn, %s", err)
-120             os.Exit(1)
-121         }
-122         blue = strings.TrimSuffix(blue, "\n")
-123
-124         fmt.Printf("You entered red: %s, green: %s, blue: %s\n", red, green, blue)
-125
-126         //
-127         // Convert string RGB values to int
-128         //
-129         blueNum, _ := strconv.Atoi(blue)
-130         redNum, _ := strconv.Atoi(red)
-131         greenNum, _ := strconv.Atoi(green)
-132         fmt.Printf("red: %x, green: %x, blue: %x\n", redNum, greenNum, blueNum)
-133
+ 92 func main() {
+ 93     if err := rpio.Open(); err != nil {
+ 94         os.Exit(1)
+ 95     }
+ 96     defer rpio.Close()
+ 97
+ 98     ledInit()
+ 99
+100     reader := bufio.NewReader(os.Stdin)
+101
+102     for {
+103         //
+104         // Get RGB values
+105         //
+106         fmt.Println("Enter red value (0 to 1023):")
+107         red, err := reader.ReadString('\n')
+108         if err != nil {
+109             fmt.Printf("Error reading from StdIn, %s", err)
+110             os.Exit(1)
+111         }
+112         red = strings.TrimSuffix(red, "\n")
+113
+114         fmt.Println("Enter green value (0 to 1023):")
+115         green, err := reader.ReadString('\n')
+116         if err != nil {
+117             fmt.Printf("Error reading from StdIn, %s", err)
+118             os.Exit(1)
+119         }
+120         green = strings.TrimSuffix(green, "\n")
+121
+122         fmt.Println("Enter blue value (0 to 1023):")
+123         blue, err := reader.ReadString('\n')
+124         if err != nil {
+125             fmt.Printf("Error reading from StdIn, %s", err)
+126             os.Exit(1)
+127         }
+128         blue = strings.TrimSuffix(blue, "\n")
+129
+130         fmt.Printf("You entered red: %s, green: %s, blue: %s\n", red, green, blue)
+131
+132         //
+133         // Convert string RGB values to int
 134         //
-135         // Set LED color
-136         //
-137         ledColorSet(uint32(redNum), uint32(greenNum), uint32(blueNum))
-138
-139         //
-140         // Quit?
-141         //
-142         fmt.Printf("Enter 'q' to quit\n")
-143         quit, err := reader.ReadString('\n')
-144         if err != nil {
-145             fmt.Printf("Error reading from StdIn, %s, err")
-146             os.Exit(1)
-147         }
-148         if quit == "q\n" {
-149             ledColorSet(0, 0, 0)
-150             break
-151         }
-152     }
-153 }
+135         blueNum, _ := strconv.Atoi(blue)
+136         redNum, _ := strconv.Atoi(red)
+137         greenNum, _ := strconv.Atoi(green)
+138         fmt.Printf("red: %x, green: %x, blue: %x\n", redNum, greenNum, blueNum)
+139
+140         //
+141         // Set LED color
+142         //
+143         ledColorSet(uint32(redNum), uint32(greenNum), uint32(blueNum))
+144
+145         //
+146         // Quit?
+147         //
+148         fmt.Printf("Enter 'q' to quit\n")
+149         quit, err := reader.ReadString('\n')
+150         if err != nil {
+151             fmt.Printf("Error reading from StdIn, %s, err")
+152             os.Exit(1)
+153         }
+154         if quit == "q\n" {
+155             ledColorSet(0, 0, 0)
+156             break
+157         }
+158     }
+159 }
 ```
 
 ## Summary

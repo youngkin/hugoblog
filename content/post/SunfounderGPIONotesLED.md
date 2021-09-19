@@ -100,64 +100,62 @@ Another option is [periph](https://github.com/periph/host) (code) with [document
 You can just use the [rpio-go blinker.go example](https://github.com/stianeikeland/go-rpio/blob/master/examples/blinker/blinker.go). It uses `rpio.Pin.Toggle()`. I created a [Github respository](https://github.com/youngkin/gpio) that contains examples in both C and Go. My Go version of `blinker` uses direct writes instead of `rpio.Pin.Toggle`. I thought showing an optional way to do this would be helpful, especially since later projects will use direct writes. My [gpio respository](https://github.com/youngkin/gpio) uses Go's module system which will automatically download the `rpio-go` library when built. Here's my version of `blinker`. I won't be explaining Go sytax as I'm assuming familiarity with Go.
 
 ```go
-  1 package main
-  2
-  3 // Run using 'go run blinkingled.go'
-  4
-  5 // The Go version of this project uses the go-rpio library to
-  6 // control the GPIO pins.
+  1 //
+  2 // Copyright (c) 2021 Richard Youngkin. All rights reserved.
+  3 // Use of this source code is governed by a MIT-style
+  4 // license that can be found in the LICENSE file.
+  5 //
+  6 // Run using 'go run blinkingled.go'
   7 //
-  8 // The Go module system is used to choose the correct version of
-  9 // this library. See the file '../go.mod' for details.
- 10
- 11 import (
- 12     "fmt"
- 13     "os"
- 14     "time"
- 15
- 16     "github.com/stianeikeland/go-rpio/v4"
- 17 )
- 18
- 19 func main() {
- 20     // Initialize the go-rpio library. By default it uses BCM pin numbering.
- 21     if err := rpio.Open(); err != nil {
- 22         fmt.Println(err)
- 23         os.Exit(1)
- 24     }
- 25
- 26     // Release resources held by the go-rpio library obtained above after
- 27     // 'main()' exits.
- 28     defer rpio.Close()
- 29
- 30     // Select the GPIO pin to use, BCM pin 17
- 31     pin := rpio.Pin(17)
- 32
- 33     // Set the pin (BCM pin 17) to OUTPUT mode to allow writes to the pin,
- 34     // e.g., set the pin to LOW or HIGH
- 35     pin.Output()
- 36
- 37     for i := 0; i < 5; i++ {
- 38         // Setting the GPIO pin to LOW allows current to flow from the power source thru
- 39         // the anode to cathode turning on the LED.
- 40         pin.Low()
- 41         //        pin.Write(rpio.Low)
- 42         fmt.Printf("LED on, Pin value should be 0: %d\n", pin.Read())
- 43         time.Sleep(time.Millisecond * 500)
- 44         pin.High()
- 45         //        pin.Write(rpio.High)
- 46         fmt.Printf("\tLED off, Pin value should be 1: %d\n", pin.Read())
- 47         time.Sleep(time.Millisecond * 500)
- 48     }
- 49
- 50     // Turn off the LED
- 51     pin.High()
- 52 }
-```
+  8 package main
+  9
+ 10 import (
+ 11     "fmt"
+ 12     "os"
+ 13     "time"
+ 14
+ 15     "github.com/stianeikeland/go-rpio/v4"
+ 16 )
+ 17
+ 18 func main() {
+ 19     // Initialize the go-rpio library. By default it uses BCM pin numbering.
+ 20     if err := rpio.Open(); err != nil {
+ 21         fmt.Println(err)
+ 22         os.Exit(1)
+ 23     }
+ 24
+ 25     // Release resources held by the go-rpio library obtained above after
+ 26     // 'main()' exits.
+ 27     defer rpio.Close()
+ 28
+ 29     // Select the GPIO pin to use, BCM pin 17
+ 30     pin := rpio.Pin(17)
+ 31
+ 32     // Set the pin (BCM pin 17) to OUTPUT mode to allow writes to the pin,
+ 33     // e.g., set the pin to LOW or HIGH
+ 34     pin.Output()
+ 35
+ 36     for i := 0; i < 5; i++ {
+ 37         // Setting the GPIO pin to LOW allows current to flow from the power source thru
+ 38         // the anode to cathode turning on the LED.
+ 39         pin.Low()
+ 40         //        pin.Write(rpio.Low)
+ 41         fmt.Printf("LED on, Pin value should be 0: %d\n", pin.Read())
+ 42         time.Sleep(time.Millisecond * 500)
+ 43         pin.High()
+ 44         //        pin.Write(rpio.High)
+ 45         fmt.Printf("\tLED off, Pin value should be 1: %d\n", pin.Read())
+ 46         time.Sleep(time.Millisecond * 500)
+ 47     }
+ 48
+ 49     // Turn off the LED
+ 50     pin.High()
+ 51 }```
 
-Line 16 imports the `rpio-go` library
+Line 15 imports the `rpio-go` library
 
 ```go
-16     "github.com/stianeikeland/go-rpio/v4"
+15     "github.com/stianeikeland/go-rpio/v4"
 ```
 
 The rest of the program is explained through embedded comments. The program can be run typing `go run blinkingled.go` at the command prompt and hitting enter.
