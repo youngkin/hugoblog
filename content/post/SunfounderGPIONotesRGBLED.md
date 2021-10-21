@@ -3,20 +3,20 @@ title: "Raspberry Pi GPIO in Go and C - RGB LED"
 description: "Use Pulse Width Modulation (PWM) on a Raspberry Pi to drive an RGB LED in Go and C"
 date: 2021-09-14T13:13:42-06:00
 draft: false
-image: "images/sunfounderLED.jpeg"
+image: "images/pwmfordummies/sunfounderLED.jpeg"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]
 categories: ["raspberry-pi", "Go", "GPIO"]
 GHissueID: 1
 toc: true
 ---
 
-This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder RGB LED project](../sunfoundergpionotesled/). You can find the full series [here](../../categories/gpio). It explores the use of Pulse Width Modulation (PWM) to drive an RGB LED as well as how to control an individual's LED brightness. The code samples will be in Go and C.
+This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder RGB LED project](../sunfoundergpionotesled/)[^2]. You can find the full series [here](../../categories/gpio). It explores the use of Pulse Width Modulation (PWM) to drive an RGB LED as well as how to control an individual's LED brightness. The code samples will be in Go and C.
 
 <!--more-->
 
 ## Overview
 
-This is the second article in the series of Raspberry Pi GPIO programming. The first is [Sunfounder Raspberry Pi Kit Notes for Go and C - Blinking LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.1_blinking_led_c.html).
+This is the second article in the series of Raspberry Pi GPIO programming. The first is [Raspberry Pi GPIO in Go and C - Blinking LED](https://youngkin.github.io/post/sunfoundergpionotesled/).
 
 ## Prerequisites
 
@@ -24,12 +24,12 @@ If you don't have one, you'll need a Raspberry Pi. I used a Raspberry Pi 3B+ wit
 
 Next you'll need is a [breadboard](https://www.amazon.com/dp/B082KBF7MM/ref=sspa_dk_detail_4?psc=1&pd_rd_i=B082KBF7MM&pd_rd_w=1tGTV&pf_rd_p=887084a2-5c34-4113-a4f8-b7947847c308&pd_rd_wg=fX8JB&pf_rd_r=44DE0RS1E9FD42RBYC7R&pd_rd_r=47cbdc7f-7834-455f-9429-ef74a438bd45&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUFVVkdZVUZRNUw3ODkmZW5jcnlwdGVkSWQ9QTA4MzI4MzYyU0VLNzBJM0cxRUVMJmVuY3J5cHRlZEFkSWQ9QTA0Mjk1NTMzSzNSWlNFUjU0NURBJndpZGdldE5hbWU9c3BfZGV0YWlsJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==), some [jumper wires](https://www.amazon.com/dp/B08HZ26ZLF/ref=syn_sd_onsite_desktop_19?psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUExRFpLWElCRjg1MUNMJmVuY3J5cHRlZElkPUEwMjMyMTE1M01aOFE3U1BQS09YSiZlbmNyeXB0ZWRBZElkPUEwODE5NTMxMktEMTlZRjEyQjBJNiZ3aWRnZXROYW1lPXNkX29uc2l0ZV9kZXNrdG9wJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==), [a 220 Ohm resistor, and a RGB LED](https://www.amazon.com/EDGELEC-Tri-Color-Multicolor-Diffused-Resistors/dp/B077XGF3YR/ref=asc_df_B077XGF3YR/?tag=hyprod-20&linkCode=df0&hvadid=242051162351&hvpos=&hvnetw=g&hvrand=11064062033670066895&hvpone=&hvptwo=&hvqmt=&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=9028749&hvtargid=pla-430228081645&psc=1). You should also consider getting a [40 pin female to female with a T-Type adapter](https://www.amazon.com/dp/B082PRVRYR/ref=sspa_dk_detail_2?psc=1&pd_rd_i=B082PRVRYR&pd_rd_w=8mKhr&pf_rd_p=887084a2-5c34-4113-a4f8-b7947847c308&pd_rd_wg=e9psa&pf_rd_r=S09F37DF2G5FW8B8GX4B&pd_rd_r=c065c120-e60b-45e9-b93b-f581f048cf46&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUFCMzhUQ09COFI2VlMmZW5jcnlwdGVkSWQ9QTA5NjU2ODUxRDkxNEYwSTYwV09KJmVuY3J5cHRlZEFkSWQ9QTAxOTg1MTUyRUhEUlc2VzQ2VDQ4JndpZGdldE5hbWU9c3BfZGV0YWlsJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==) to attach the GPIO outputs to the breadboard. You can use only jumper wires, but the cable will make things easier and will help prevent damage to the GPIO pins on the Raspberry Pi. If you elect not to buy the 40 pin cable with T-Type adapter you'll need to buy [male-to-female jumper wires](https://www.amazon.com/SinLoon-Breadboard-Arduino-Circuit-40-Pack/dp/B08M3QLL3Q/ref=pd_sbs_7/143-0445142-7950409?pd_rd_w=sVLrc&pf_rd_p=8b76d7a7-ab83-4ddc-a92d-e3e33bfdbf03&pf_rd_r=CDM5TGJT03VKF0ZFB577&pd_rd_r=8e58fd82-8503-41cf-b8f2-c78eaeb78d25&pd_rd_wg=tT1U0&pd_rd_i=B08M3QLL3Q&psc=1). Buying all these things separately will cost more than a kit however. [Here's a simple kit that has all of the above](https://www.amazon.com/dp/B06WP7169Y/ref=sspa_dk_detail_5?psc=1&pd_rd_i=B06WP7169Y&pd_rd_w=OZVyf&pf_rd_p=887084a2-5c34-4113-a4f8-b7947847c308&pd_rd_wg=0V0IH&pf_rd_r=623YJTBQ2CN2B2GYXQG5&pd_rd_r=faa61f0f-3aec-4cf0-8e7e-d44eb1b3b92f&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUEyUVlDQzMzVVZBMFYxJmVuY3J5cHRlZElkPUEwMzExNzk4MUhGSjFSS0VKTlBROCZlbmNyeXB0ZWRBZElkPUEwMzYwNjg2UUdMRU44N0YzNzIwJndpZGdldE5hbWU9c3BfZGV0YWlsJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==). If you expect to follow this series I recommend buying the [Sunfounder Raspberry Pi Ultimate Starter Kit](https://www.amazon.com/gp/product/B09BMVT4CB/ref=ppx_yo_dt_b_asin_title_o02_s00?ie=UTF8&psc=1).
 
-<img style="border:1px solid black" src="/images/RaphaelKit.png" align="center" width="600" height="300"/>
+<img style="border:1px solid black" src="/images/pwmfordummies/RaphaelKit.png" align="center" width="600" height="300"/>
 <figcaption align="left"><center><i style="color:black;">Sunfounder Ultimate Starter/Raphael kit</i></center></figcaption>
 
 You will also need some basic C  and Go programming knowledge as well as familiarity with logging on to a Raspberry Pi terminal, or into the desktop GUI that comes with some OS versions. Depending on the approach you take, you may need to connect a keyboard and monitor to the Raspberry Pi. I simply SSH into the Pi. You'll also need familiarity with how to use an editor like Vi or nano.
 
-To compile and run the C program you'll need the WiringPi libary. It's easy to get:
+To compile and run the C program you'll need the [WiringPi](https://github.com/WiringPi/WiringPi)[^4] libary. It's easy to get:
 
 ```
 sudo apt-get install wiringpi
@@ -53,36 +53,36 @@ Raspberry Pi Details:
 
 In the above you'll notice `gpio version: 2.50`. If you're using a Rasberry Pi 4, use the instructions given in the Sunfounder [Checking the WiringPi](https://docs.sunfounder.com/projects/raphael-kit/en/latest/check_the_wiringpi_c.html).
 
-I chose not to download the code from the Sunfounder site, preferring to write my own instead, even if all I did was copy directly from the project documentation. Due to this I created my own location to create the code. In fact, [my code is in Github](https://github.com/youngkin/gpio). If you do like downloading code you have the option of downloading, cloning, or forking it from my Github repository. As an added bonus, the project code written in Go is also located there. The code for this project is located at [gpio/ledblink](https://github.com/youngkin/gpio/tree/main/ledblink).
+WiringPi is unique in that it includes a command line tool, `gpio`, as shown above, that can be used to manage, control, and query the GPIO board. This can be very handy. See the [gpio reference](http://wiringpi.com/the-gpio-utility/) for more information on what it can do and how to use it.
+
+I chose not to download the code from the Sunfounder site, preferring to write my own instead, even if all I did was copy directly from the project documentation. Due to this I created my own location to create the code. In fact, [my code is in Github](https://github.com/youngkin/gpio). If you do like downloading code you have the option of downloading, cloning, or forking it from my Github repository. As an added bonus, the project code written in Go is also located there. The code for this project is located at [gpio/rgbled](https://github.com/youngkin/gpio/tree/main/rgbled).
 
 If you're interested in Go development on a Raspberry Pi you'll need to install the development environment onto the Raspberry Pi. [Here's a simple source](https://www.jeremymorgan.com/tutorials/raspberry-pi/install-go-raspberry-pi/) that explains how to accomplish this. This source is a little dated, but the only significant issue is with the version of Go to install. The source shows installing Go __1.14.4.linux-arm64.tar.gz__ and __1.14.4.linuxarmv6l.tar.gz__. The current versions are __1.17.1.linux-arm64.tar.gz__ and __1.17.1.linuxarmv6l.tar.gz__. For the Raspberry Pi 3B+ the correct choice will be __1.17.1.linuxarmv6l.tar.gz__. The other is intended for 64 bit systems like the Raspberry Pi 4 series.
+
+For Go development you'll also need the [go-rpio](https://github.com/stianeikeland/go-rpio)[^5] library. I chose it for several reasons:
+
+1. It seems to be in fairly wide use
+2. It seems to be fairly complete
+3. It's relatively active
+4. It comes with example code and good documentation
+5. Its API is similar to WiringPi's
+
+Another Go option is [periph](https://github.com/periph/host) (code) with [documentation](https://periph.io/). It is more active and the documentation is very good, better than go-rpio. But for the LED examples I was able to find, go-rpio better matched what I was looking for, especially with regard to this project. But this is an excellent alternative to go-rpio and vice-versa.
 
 Finally, I'm assuming a basic knowledge of Linux if you want to veer away from the cookbook style of the Sunfounder docs. For example, I won't be explaining what __root privileges__ are.
 
 ## Information that would have been helpful
 
-This project uses the PWM (Pulse Width Modulation) pins on the GPIO to achieve the desired effect, namely demonstrating how to create different colors with a simple RGB LED. Unfortunately the Sunfounder documentation leaves out information about PWM, like what is PWM and how is it implemented on a Raspberry Pi?
+This project uses PWM (Pulse Width Modulation) on GPIO pins to achieve the desired effect, namely demonstrating how to create different colors with a simple RGB LED. Unfortunately the Sunfounder documentation leaves out information about PWM, like what is PWM and how is it implemented on a Raspberry Pi? I started to cover all the information I found missing from the [Sunfounder project documentation](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) but it quickly became apparent that would better be left to a separate article. So if you don't already have a good understanding of PWM I'd recommend reading my [Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi](https://youngkin.github.io/post/pulsewidthmodulationraspberrypi/)[^1] article before continuing with this article.
 
-### What is PWM?
-
-At it's most basic, PWM is used to simulate an analog signal using a digital source (like a GPIO pin). An LED's brightness can be modified by varying the voltage supplied to the LED. A variety of analog devices, such as a motor's speed, can be controlled in the same way. PWM simulates varying voltages by varying the length of the digital power pulse within a given duration (range). The ratio of the power pulse vs the range is called a duty cycle. For example, a time duration of 10 seconds and a pulse length of 1 second has a duty cycle of 10. This duty cycle of 10 means power is flowing for 10% of the time. A duty cycle of 10 with a 10 volt input would  result in a 1 volt output. This article, [Introduction to PWM: How Pulse Width Modulation works](https://www.kompulsa.com/introduction-pwm-pulse-width-modulation-works/), provides a good overview of PWM.
-
-For the purposes of this article there are 2 ways to generate a PWM signal, software-based and hardware-based. Hardware-based PWM is generated by a dedicated hardware PWM device that can be configured to generate a PWM signal as described above. It produces a very uniform signal with regard to timing. A uniform signal is required, for example, to produce a flicker-free light source such as an LED. Software-based PWM is directly implemented in the executing program using a `while(true)` for loop that never ends which controls the amount of time a pin is allowing current to flow (pulse) vs. the amount of time the pin isn't allowing current to flow. In this case the uniformity of the signal is determined by the accuracy of a language's `sleep()` function and the OS (Linux) scheduler. A less uniform signal, for example, may result in a flickering light source. There is a more complete description of [the difference between soft PWM and PWM](https://raspberrypi.stackexchange.com/questions/100641/whats-the-difference-between-soft-pwm-and-pwm) and associated pros and cons on the Raspberry Pi Stack Exchange site.
-
-The Sunfounder RGB LED project documentation doesn't mention that there are both software and hardware PWM modes. This became apparent when when I wrote a program that used the Go GPIO library which only supports hardware PWM. The project's example C code uses the software PWM functions of the WiringPi library. As will be explained in more detail below, the Go version of RGB LED didn't work as expected while the C version did.
-
-### PWM using Raspberry Pi GPIO
-
-Software PWM can be created on any GPIO pin. For hardware PWM the Raspberry Pi 3B+ has 4 PWM pins, BCM GPIO pins 12,13, 18, and 19 [^1]. The Broadcom BC2835 GPIO board that's on the Raspberry Pi 3B+ has 2 PWM channels[^2]. GPIO12 and GPIO18 share one channel and GPIO13 and GPIO19 share the other channel. This means that a signal that's sent to either pin that share a channel will go to both pins. For example, sending a signal on GPIO12 will also be shared with GPIO18 and vice versa[^2] [^3].
-
-So why is it important to know that there are only 2 PWM channels for 4 PWM pins? This project uses an RGB LED that has 4 pins. One pin is for the ground, the other 3 are used to control the red, green, and blue LEDs. So we need 3 PWM pins, one for each RGB color. See the problem? There are only 2 independent pins available for hardware PWM but we need 3 to control the RGB LED. Let's say that GPIO12 is configured as the color red and GPIO18 is configured as blue. If a signal is sent to GPIO12 which represents the color red, the same signal will be sent to GPIO18, blue. So the resulting color will be purple, not red as expected. 
-
-## RGB LED in C
+## RGB LED in C (Software PWM)
 
 If you haven't done so already, you should start with the [Introduction](https://docs.sunfounder.com/projects/raphael-kit/en/latest/introduction.html) to the project's in the Ultimate Starter/Raphael kit's documentation and work your way through the following sections up to and including the [Play with C](https://docs.sunfounder.com/projects/raphael-kit/en/latest/play_with_c.html) section, and then to the [RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project. You should set up the breadboard as described in the project documentation or in the diagram below:
 
-<img style="border:1px solid black" src="/images/RgbLed.png" align="center" width="600" height="300"/>
+<img style="border:1px solid black" src="/images/pwmfordummies/RgbLed.png" align="center" width="600" height="300"/>
 <figcaption align="left"><center><i style="color:black;">Sunfounder RGB LED breadboard setup</i></center></figcaption>
+
+The WiringPi `gpio` utility can help with debugging if necessary. You already have this utility, you used it to verify the WiringPi installation in the [Prerequisites](#prerequisites) section above.
 
 The C code described in the Sunfounder [RGB LED project](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) uses software PWM. When run, the colors of the RGB LED change as expected. Varying voltages to the respective RGB pins using software PWM produces light of varying brightness (off to full bright) which will produce a wide range of colors.
 
@@ -102,9 +102,9 @@ Here is a slightly modified version of the Sunfounder C program that the control
  11 #include <stdlib.h>
  12
  13 #define uchar unsigned char
- 14 #define LedPinRed    24
+ 14 #define LedPinRed    0
  15 #define LedPinGreen  1
- 16 #define LedPinBlue   23
+ 16 #define LedPinBlue   2
  17
  18 static volatile int keepRunning = 1;
  19
@@ -178,12 +178,12 @@ Here is a slightly modified version of the Sunfounder C program that the control
  87     printf("\nExiting...\n");
  88
  89     exit(0);
- 90 }
- ```
+ 90 }                                                                                                                                      ~ 
+```
 
  Line 5 provides the command needed to build the program - `gcc -o rgbled rgbled.c  -lwiringPi -lpthread`. The `-l` flags reference the libraries needed to build the program. `-lwiringPi` refers to the WiringPi library. It should be installed in the correct place along with WiringPi and the build command should just work. Libraries are usually located in `/usr/lib`.
 
- Note the pin numbering used in lines 14-16. I'm using WiringPi pins 24, 1, and 23 for red, green, and blue, which correspond to BCM pins 19, 18, and 13 respectively. The Sunfounder wiring diagram above using BCM pins 17, 18, and 27 for red, green, and blue, which correspond to WiringPi pins 0, 1, and 2 respectively. The Sunfounder C code uses the pins as shown in the above diagram. Make sure your breadboard is wired to BCM pins 19, 18, and 13 for red, green, and blue; wiringPi pins 24, 1, and 23, or change the above code to to use 0, 1, and 2 for `LedPinRed`, `LedPinGreen`, and `LedPinBlue` respectively. This will be good practice for navigating your way around a breadboard. See the Sunfounder page [GPIO Extension Board](https://docs.sunfounder.com/projects/raphael-kit/en/latest/gpio_extension_board.html) for a quick cross reference between BCM, board, and WiringPi pin numbers.
+Lines 14-16 specify, using the WiringPi pin numbering scheme, the GPIO pins 0, 1, and 2 for `LedPinRed`, `LedPinGreen`, and `LedPinBlue` respectively. 
 
  The `softPwm*` functions called on lines 23-25 and 29-31 indicate that software PWM is being used.
 
@@ -193,9 +193,14 @@ Here is a slightly modified version of the Sunfounder C program that the control
 
  The program can be run, after compiling, using `./rgbled`.
 
- ### Hardware PWM in C
+ ## RGB LED in C (Hardware PWM)
 
- Since the Sunfounder documentation doesn't include a hardware PWM solution in C I decided to create one for myself. Partly to assure myself that the hardware PWM behavior I saw using the Go go-rpio library wasn't limited to that library. 
+ Since the Sunfounder documentation doesn't include a hardware PWM solution in C I decided to create one for myself. For this program modify the breadboard as shown below:
+
+<img style="border:1px solid black" src="/images/pwmfordummies/RgbLedHardware.jpg" align="center" width="600" height="300"/>
+<figcaption align="left"><center><i style="color:black;">Sunfounder RGB LED breadboard setup</i></center></figcaption>
+
+This time I'm using WiringPi pins 24, 1, and 23 for red, green, and blue, which correspond to BCM pins 19, 18, and 13 respectively. This is because these are 3 of the 4 hardware PWM pins on the Broadcomm BCM2835 board. Be sure to rewire the board to match these new pin assignments . The WiringPi `gpio` utility can help with debugging if necessary. You already have this utility, you used it to verify the WiringPi installation in the [Prerequisites](#prerequisites) section above.
 
 ```c
   1 // Copyright (c) 2021 Richard Youngkin. All rights reserved.
@@ -293,31 +298,21 @@ Here is a slightly modified version of the Sunfounder C program that the control
  93
  94         exit(0);
  95 }
- ```
+  ```
 
-This version of RGB LED is very similar to the software PWM version above. It also uses the same pins as the above example. The primary difference is that the pin mode is set to `PWM_OUTPUT` vs. the use of `softPwmCreate`. It also uses `pwmWrite` instead of `softPwmWrite`.
+This version of RGB LED is very similar to the software PWM version above. There are 2 significant differences.
+
+First, Note the pin numbering used in lines 14-16. 
+
+Second, the `ledInit()` and `ledColorSet()` functions (lines 30-47) are quite different. In those functions pin mode is set to `PWM_OUTPUT` vs. the use of `softPwmCreate` and `pwmWrite` is used instead of `softPwmWrite`.
 
 The program is run using root privileges with `sudo ./rgbledHardware`. `sudo` is needed because direct hardware access is limited to users with root privileges. `sudo` provides root privileges to commands prefixed with `sudo`.
 
 When running the program you'll notice that the RGB LED doesn't produce the expected colors. Sometimes it might show purple when it should be showing blue. Sometimes it might be turned off completely when it's supposed to be showing a color. This behavior occurs because BCM pin 13 (blue) and BCM pin 19 (red) are on the same hardware channel. As explained above, when a signal is sent to one channel it will propagate to both pins that share that channel. Green, on BCM pin 12, is unaffected. One behavior I don't understand is why sometimes the LED is off when it should be showing a color. This only happens for red (BCM19) and blue (BCM 13) pins. Perhaps the pins that share a channel don't produce a signal at exactly the same time. Imagine a case where the blue pin is set to 0xff and the red pin is set to 0x00. If the red pin's signal comes in slightly after the blue signal it would override the blue pin signal turning the LED off. The takeaway from all this is that for all intents and purposes, there are only 2 hardware PWM pins can be in use at the same time, and they can't be on the same channel.
 
-## RGB LED in Go
+## RGB LED in Go (Hardware PWM)
 
-This version of RGB LED will work with the same breadboard setup as the C version. Unlike the Sunfounder C version, and the first C version in this article, the Go library only supports hardware PWM.
-
-First things first, we need a Go library to drive the GPIO interface. I'm using [go-rpio](https://github.com/stianeikeland/go-rpio) for several reasons:
-
-1. It seems to be in fairly wide use
-2. It seems to be fairly complete
-3. It's relatively active
-4. It comes with example code and good documentation
-5. Its API is similar to WiringPi's
-
-Another option is [periph](https://github.com/periph/host) (code) with [documentation](https://periph.io/). It is more active and the documentation is very good, better than go-rpio. But for the LED examples I was able to find, go-rpio better matched what I was looking for, especially with regard to this project. But this is an excellent alternative to go-rpio and vice-versa.
-
-### Example 1 - RGB LED with hardware PWM
-
-This program can operate in one of 2 ways. First, it can operate as a fully hardware PWM implementation, similar to [Hardware PWM in C](#hardware-pwm-in-c). It can also operate in a mixed-mode, part hardware and part software PWM. See the comments on lines 32-38 and lines 44-52 for details. Switching modes requires commenting/uncommenting code blocks as described in those comments.
+This version of RGB LED will work with the same breadboard setup as the C hardware PWM version. That is, it uses the hardware PWM pins on the GPIO board. Unlike the Sunfounder C version, and the first C version in this article, the Go library only supports hardware PWM. In my [Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi](https://youngkin.github.io/post/pulsewidthmodulationraspberrypi/) article I do include a software version of PWM in Go. It's implemented in a companion program, [freqtest.go](https://github.com/youngkin/gpio/blob/main/pwmdemo/pwmexplorer/apps/freqtest.go) in the `runSoftwarePWM()` function. Here is the code:
 
 ```go
   1 // Copyright (c) 2021 Richard Youngkin. All rights reserved.
@@ -396,6 +391,15 @@ This program can operate in one of 2 ways. First, it can operate as a fully hard
  74     //      ledPinBlue.DutyCycle(blueVal, cycle)
  75     //  }
  76 }
+````
+
+Lines 27-29 define the pins to use for the red, green and blue elements of the LED.
+
+Lines 30-31 define default values to use for settings.
+
+Lines 35-75 contain comments and code that address the issues with trying to use 2 hardware PWM pins residing on the same channel as noted in the [Hardware PWM in C](#hardware-pwm-in-c) section above.
+
+````c
  77
  78 func ledInit() {
  79     ledPinRed.Mode(rpio.Pwm)
@@ -479,10 +483,25 @@ This program can operate in one of 2 ways. First, it can operate as a fully hard
 157         }
 158     }
 159 }
-```
+````
+
+Lines 78-90, `ledInit()`, setup the GPIO pins for use in the program. They set the mode (PWM), frequency, and duty cycle (providing parameters for pulse width and range (aka cycle)).
+
+Lines 93-96 initialize the go-rpio library. Line 96 makes sure the resources used are released when the program exits.
+
+The remainder of the program prompts the user for the red, green, and blue values to use and the sets the pins approporiately.
 
 ## Summary
 
-[^1]: The Raspberry Pi's GPIO PWM pins can also be configured and non-PWM pins.
-[^2]: The [full Broadcom spec for the BCM2835](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf), starting at page 138, for more details about how PWM is implemented on the BCM2835.
-[^3]: There's a detailed discussion about [Which pin(s) on RPi 3B is PWM capable](https://www.raspberrypi.org/forums/viewtopic.php?t=150254). Specifically regarding the effect of sharing 2 PWM channels for 4 PWM pins. The Broadcom spec[^2] also discusses this in section 9.4 on page 139, but in a less obvious way.
+That's it, I hope you found this article interesting. To quickly review, this article covered the following:
+
+1. Setting up the physical environment needed to experiment with an RGB LED on a Raspberry Pi 3B+.
+2. Provided, via a link to another article[^1], the detailed knowledge of PWM that's missing from the [Sunfounder RGB LED Project](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html).
+3. Provided and explained the C and Go code needed to set colors in an RGB LED using both hardware and software PWM.
+
+## References
+
+[^1]: [Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi](https://youngkin.github.io/post/pulsewidthmodulationraspberrypi/) contains all you need to know about PWM on a Raspberry Pi, at least until you want to become a PWM expert!
+[^2]: [Sunfounder RGB LED Project](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html)
+[^5]: [go-rpio](https://github.com/stianeikeland/go-rpio)
+[^4]: [WiringPi](https://github.com/WiringPi/WiringPi)
