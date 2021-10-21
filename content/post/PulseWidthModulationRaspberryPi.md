@@ -3,20 +3,20 @@ title: "Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi"
 description: "An overview of PWM, with code examples, on the Raspberry Pi."
 date: 2021-09-19T13:13:42-06:00
 draft: false
-image: "images/pwmfordummies/PWMPulsePeriod.png"
+image: "images/pwmfordummies/PWMPulsePerioddim.png"
 tags: ["raspberry-pi", "Golang", "C", "GPIO"]
 categories: ["raspberry-pi", "Golang", "GPIO"]
 GHissueID: 1
 toc: true
 ---
 
-This article provides some details about hardware and software based PWM on the Raspberry Pi, specifically the 3B+ with the [Broadcomm BCM2835 board](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf). There is a corresponding application, PWM Explorer, that can be used to experiment with PWM settings and capabilities.
+This article provides some details about hardware and software based PWM on the Raspberry Pi, specifically the 3B+ with the [Broadcomm BCM2835 board](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf). This article has an accompanying application, [PWM Explorer](https://github.com/youngkin/gpio)[^20], that can be used to experiment with PWM settings and capabilities.
 
 <!--more-->
 
 ## Overview
 
-I was writing an article titled [Raspberry Pi GPIO in Go and C - RGB LED](sunfounderergpionoesrgbled) as a companion to the [SunFounder RGB LED project](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.1_blinking_led_c.html) to cover some areas that were missing in that project such as what is PWM, how does it work, and why the code was written as it was. I had no idea what PWM was or what I was doing or why. To fill the gap I started researching PWM and found numerous articles about PWM[^1] [^2] [^3], and also software libraries like [WiringPi](https://github.com/WiringPi/WiringPi) (C)[^4], [go-rpio](https://github.com/stianeikeland/go-rpio) (Go)[^5], [BCM2835 by Mike McCalley](https://www.airspayce.com/mikem/bcm2835) (C)[^6] and [pigpio](https://abyz.me.uk/rpi/pigpio/pdif2.html) (Python & C)[^13]. So with my focus still on controlling an RGB LED via GPIO and PWM I started writing programs in C and Go. I quickly had difficulty in several areas:
+I was writing an article as a companion to the [SunFounder RGB LED project](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.1_blinking_led_c.html) to cover some areas that were missing in that project such as what is PWM, how does it work, and why the code was written as it was. I had no idea what PWM was or what I was doing or why. To fill the gap I started researching PWM and found numerous articles about PWM[^1] [^2] [^3], and also software libraries like [WiringPi](https://github.com/WiringPi/WiringPi) (C)[^4], [go-rpio](https://github.com/stianeikeland/go-rpio) (Go)[^5], [BCM2835 by Mike McCalley](https://www.airspayce.com/mikem/bcm2835) (C)[^6] and [pigpio](https://abyz.me.uk/rpi/pigpio/pdif2.html) (Python & C)[^13]. So with my focus still on controlling an RGB LED via GPIO and PWM I started writing programs in C and Go. I quickly had difficulty in several areas:
 
 1. Terminology is used inconsistently across articles and the libraries. For example, some used the terms _Cycle_ and _Range_ for the same thing.
 2. The libraries were documented to varying degrees. Coupled with a lack of common terminology it was difficult to figure out how to use them.
@@ -47,7 +47,7 @@ Now to the outline of this article. The sections are as follows:
 
 ## Prerequisites
 
-If you don't have one, you'll need a Raspberry Pi. I used a Raspberry Pi 3B+ with the 'Stretch' version of the Raspbian OS. Given that the Sunfounder Ultimate Starter Kit is advertised to work with a Raspberry Pi 4, I would expect the 4 series to work as well. I'm less sure about other Raspberry Pi versions, especially versions with 26 vs. 40 GPIO pins. The Raspberry Pi website has instructions on how to [setup a new Raspberry Pi from scratch](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up)[^16] if you decide to go that way vs. buying a complete kit.
+If you don't have one, you'll need a Raspberry Pi. I used a Raspberry Pi 3B+ with the 'Stretch' version of the Raspbian OS. The Raspberry Pi website has instructions on how to [setup a new Raspberry Pi from scratch](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up)[^16] if you decide to go that way vs. buying a complete kit.
 
 Other items you'll need include:
 
@@ -61,7 +61,7 @@ Other items you'll need include:
 <img style="border:1px solid black" src="/images/pwmfordummies/RaphaelKit.png" align="center" width="600" height="300"/>
 <figcaption align="left"><center><i style="color:black;">Sunfounder Ultimate Starter/Raphael kit</i></center></figcaption>
 
-You will also need some basic C  and Go programming knowledge as well as familiarity with logging on to a Raspberry Pi terminal, or into the desktop GUI that comes with some OS versions. Depending on the approach you take, you may need to connect a keyboard and monitor to the Raspberry Pi. I simply SSH into the Pi. You'll also need familiarity with how to use an editor like Vi or nano.
+You will also need some basic C  and Go programming knowledge as well as familiarity with logging on to a Raspberry Pi terminal, or into the desktop GUI that comes with some OS versions. Depending on the approach you take, you may need to connect a keyboard and monitor to the Raspberry Pi. I simply SSH into the Pi. You'll also need familiarity with how to use an editor like vim or nano.
 
 To compile and run the C program you'll need the WiringPi[^4] [^19] library. It's easy to get:
 
@@ -87,6 +87,8 @@ Raspberry Pi Details:
 
 In the above you'll notice `gpio version: 2.50`. If you're using a Rasberry Pi 4, use the instructions given in the Sunfounder [Checking the WiringPi](https://docs.sunfounder.com/projects/raphael-kit/en/latest/check_the_wiringpi_c.html).
 
+WiringPi is unique in that it includes a command line tool, `gpio`, as shown above, that can be used to manage, control, and query the GPIO board. This can be very handy. See the [gpio reference](http://wiringpi.com/the-gpio-utility/) for more information on what it can do and how to use it.
+
 If you're interested in Go development on a Raspberry Pi you'll need to install the development environment onto the Raspberry Pi. [Here's a simple source](https://www.jeremymorgan.com/tutorials/raspberry-pi/install-go-raspberry-pi/) that explains how to accomplish this. This source is a little dated, but the only significant issue is with the version of Go to install. The source shows installing Go __1.14.4.linux-arm64.tar.gz__ and __1.14.4.linuxarmv6l.tar.gz__. The current versions are __1.17.1.linux-arm64.tar.gz__ and __1.17.1.linuxarmv6l.tar.gz__. For the Raspberry Pi 3B+ the correct choice will be __1.17.1.linuxarmv6l.tar.gz__. The other is intended for 64 bit systems like the Raspberry Pi 4 series. You can find current ARM versions of Go at the [Golang download site](https://golang.org/dl/).
 
 For Go development you'll also need the [go-rpio](https://github.com/stianeikeland/go-rpio)[^5] library.
@@ -97,24 +99,24 @@ Finally, I wrote an application that supports experimenting with the various PWM
 
 ## What is PWM?
 
-At it's most basic, PWM is used to simulate an analog signal using a digital source (like a GPIO pin). As an example, an LED's brightness and/or color can be modified by varying the voltage supplied to the LED. A variety of analog devices, such as a motor's speed, can be controlled in the same way. PWM simulates varying voltages by varying the length of the digital power pulse within a given duration (range). The ratio of the power pulse value vs the range value is called a duty cycle. For example, a range value of 10 and a pulse value of 1 has a duty cycle of 1/10, or 0.1, or 10%. This example duty cycle means power is flowing for 10% of the time. A duty cycle of 10% with a 10 volt input would  result in a 1 volt output. The follow sections cover the main points:
+At it's most basic, PWM is used to simulate an analog signal using a digital source (like a GPIO pin). As an example, an LED's brightness and/or color can be modified by varying the voltage supplied to the LED. A variety of analog devices, such as a motor's speed, can be controlled in the same way. PWM simulates varying voltages by varying the length of the digital power pulse within a given duration.
+  
+In addition to what's presented here, [Introduction to PWM: How Pulse Width Modulation works](https://www.kompulsa.com/introduction-pwm-pulse-width-modulation-works/) describes some of the same concepts described here as well as a few more examples of how PWM can be used. The [References](#references) section has links to more sources of PWM information.
+
+The follow sections cover the main points:
 
 * [Terminology](#Terminology) defines terms that will be used throughout the document
 * [Primary concepts](#Primary-concepts) describes the major concepts
-  
-In addition to what's presented here, [Introduction to PWM: How Pulse Width Modulation works](https://www.kompulsa.com/introduction-pwm-pulse-width-modulation-works/) describes some of the same concepts described here as well as a few more examples of how PWM can be used. The [References](#references) section has links to more sources of PWM information.
 
 ### Terminology
 
 My research into PWM involved reading several articles[^1] [^2] [^3] as well as examining the code of several PWM software libraries in various languages [^4] [^5] [^6]. These various sources aren't completely consistent in the terminology they use. Here are some of the common terms, their aliases, and definitions. See the diagram below for a visual representation of the terms.
 
-__TODO: Make better pictures. Reduce the number of definitions, otherwise this section seems to busy? Maybe additional terms could be defined where they're used. Clock Tick and Resolution are obvious choices. GPIO Pins and Channel could also be defined in context of where they're used.__
-
 <img style="border:1px solid black" src="/images/pwmfordummies/PWMPulsePeriod.png" align="center" width="800" height="400"/>
 <figcaption align="left"><center><i style="color:black;">PWM timing diagram</i></center></figcaption>
 
-* __Frequency__ - Per Wikipedia [^11], _frequency is the number of occurrences of a repeating event per unit of time_. In electronics an event is the peak of a wave to the next peak of the wave (analog). In digital terms an event is from the leading edge of one pulse to the leading edge of the next pulse. The diagram above shows frequency in digital terms, pulses.
-* __Period__ - Also from Wikipedia [^11], period is the duration of time of one cycle in a repeating event. So period is how long something takes vs. frequency which is how many times an event occurs in a given duration of time. This makes period the reciprocal of the frequency[^10] and vice versa, ie., _unit of time per event_ vs. _events per unit of time_. For example, a period of 10 seconds has a frequency of 1/10. Frequency is measured in Hertz which is defined as _number of events per second_. So in this example a frequency of 1/10 is 0.1Hz or _one event per 10 seconds_. In the diagram above the period is 10 milliseconds(0.01 seconds). Frequency is therefore 1/0.01 which is 100Hz.
+* __Frequency__ - Per Wikipedia [^11], _frequency is the number of occurrences of a repeating event per unit of time_. In electronics an event is the peak of a wave to the next peak of the wave (analog). In digital terms an event is from the leading edge of one pulse to the leading edge of the next pulse. Frequency is measured in Hertz, which is the number of repeating events per second. 
+* __Period__ - Also from Wikipedia [^11], period is the duration of time of one cycle in a repeating event. Period is measured in seconds. So period is how long something takes vs. frequency which is how many times an event occurs in a given duration of time. This makes period the reciprocal of the frequency[^10] and vice versa, ie., _unit of time per event_ vs. _events per unit of time_. In the above diagram the period is 10 milliseconds (ms). So the frequency in the above diagram is `1/.01` or 100. Since frequency is measured in Hertz, or events/second, the frequency in the above diagram is 100Hz.
 * __Clock source__[^8] - Also called a clock, it sets the rate at which the clock advances. 
 * __PWM clock__ - Sometimes also called a clock so this gets a bit confusing. The PWM clock's underlying input is the clock source. Different hardware devices, such as motors and servos, only work within specific period ranges. Often the source clock is too fast for these devices. The PWM clock is created by dividing the clock source's frequency with a number that will result in the PWM clock operating at a frequency that's appropriate for a given device. Different devices will need different PWM clock speeds. The number used as the denominator in this calculation is frequently called the __divisor__ in software libraries and the BCM2835 Data Sheet[^9].
 * __Pulse__ - From the "P" in PWM. This is the minimum length of time a PWM pin's output is set to high or low. Its minimum length is governed by the speed of the PWM clock. I'll use pulse throughout this document, mostly because it's in the name. 
@@ -123,9 +125,9 @@ __TODO: Make better pictures. Reduce the number of definitions, otherwise this s
 
 ### Primary concepts
 
-* __Duty cycle__ is the ratio of Pulse Width to Range, i.e., Pulse-Width/Range. For a range of 10 and a pulse of 5, the duty cycle is 5/10 or 50%. Duty cycle regulates the output voltage of a PWM device. For a 50% duty cycle and an input voltage of 5 volts, the output voltage will be 2.5 volts.
+* __Duty cycle__ is the ratio of Pulse Width to Range, i.e., `Pulse-Width/Range`. For a range of 10 and a pulse of 5, the duty cycle is 5/10 or 50%. Duty cycle regulates the output voltage of a PWM device. For a 50% duty cycle and an input voltage of 5 volts, the output voltage will be 2.5 volts.
 * __Software vs. Hardware PWM__ - For the purposes of this article there are 2 ways to generate a PWM signal, software-based and hardware-based[^17]. Hardware-based PWM is generated by a dedicated hardware PWM device that can be configured to generate a PWM signal as described above[^17]. Hardware-based PWM produces a very uniform signal with regard to timing. A uniform signal is required, for example, to produce a flicker-free light source such as an LED. Software-based PWM is directly implemented in the executing program using a `while(true)` for loop that never ends which controls the amount of time a pin is allowing current to flow (pulse) vs. the amount of time the pin isn't allowing current to flow. In this case the uniformity of the signal is determined by the accuracy of a language's `sleep()` function and the OS (Linux) scheduler. A less uniform signal, for example, may result in a flickering light source. There is a more complete description of [the difference between soft PWM and PWM](https://raspberrypi.stackexchange.com/questions/100641/whats-the-difference-between-soft-pwm-and-pwm) and associated pros and cons on the Raspberry Pi Stack Exchange site.
-* __Balanced vs. Mark/Space__ refer to the method used to determine how the PWM output signals can be generated. There are 2 algorithms, balanced and mark/space. Balanced indicates that the duty cycle will be evenly spread across the range. That is to say, the pulse width will be split into a set of shorter pulses that are distributed across the range. In contrast, in mark/space, the pulse is generated as a single signal called a "mark". The time remaining in the range, `range-pulseWidth` , is called the "space". No signal is present in the space duration. Mark/Space is often good enough, but as periods get longer so does the absolute time difference between the mark and space durations. For large ratios of `range/PWMClockFrequency`, e.g., 1 (_which equates to 1Hz since the denominator unit is frequency_) and a duty-cycle of 50%, the space will be 500 milliseconds and the mark will be 500 milliseconds. This difference is large enough to be discernable in the behavior of the device. For example a motor might surge or a light flicker. In contrast, balanced mode will smooth out these differences. For the same 1Hz range and 50% duty-cycle, balanced mode might produce 500 1 millisecond signals every 2 milliseconds. The same 50% duty-cycle is produced, but the output signal is much smoother. Hardware implementations like the BCM2835 support both algorithms. It is possible to support both algorithms in software, but depending on the algorithms are implemented they may consume a significant amout of CPU.
+* __Balanced vs. Mark/Space__ refers to the method used to determine how the PWM output signals are to be generated. There are 2 algorithms, balanced and mark/space. Balanced indicates that the duty cycle will be evenly spread across the range. That is to say, the pulse width will be split into a set of shorter pulses that are distributed across the range. In contrast, in mark/space, the pulse is generated as a single signal called a "mark". The time remaining in the range, `range-pulseWidth` , is called the "space". No signal is present in the space duration. Mark/Space is often good enough, but as periods get longer so does the absolute time difference between the mark and space durations. For large ratios of `range/PWMClockFrequency`, e.g., 1 (_which equates to 1Hz since the denominator unit is frequency_) and a duty-cycle of 50%, the space will be 500 milliseconds and the mark will be 500 milliseconds. This difference is large enough to be discernable in the behavior of the device. For example a motor might surge or a light flicker. In contrast, balanced mode will smooth out these differences. For the same 1Hz range and 50% duty-cycle, balanced mode might produce 500 1 millisecond signals every 2 milliseconds (`1/(500 * .002) = 1 = 1Hz`). The same 50% duty-cycle is produced, but the output signal is much smoother. Hardware implementations like the BCM2835 support both algorithms. It is possible to support both algorithms in software, but depending on the algorithms are implemented they may consume a significant amout of CPU.
  
 ## Overview of PWM on a Raspberry Pi 3B+
 
@@ -137,7 +139,7 @@ The BCM2835 board also implements something called a channel[^8]. A hardware PWM
 
 ## Exploring PWM on a Raspberry Pi
 
-The setup for this exercise is identical to a combination of the [SunFounder Blinking LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.1_blinking_led_c.html) and [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) projects. If you're familiar with wiring a breadboard the diagrams below may be all you need to get started. Otherwise it may be worth while looking at the Sunfounder LED projects and the introduction to breadboards[^18]. The resistor used in both diagrams is 220 Ohms.
+The setup for this exercise is identical to a combination of the [SunFounder Blinking LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.1_blinking_led_c.html) and [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) projects. If you're familiar with wiring a breadboard the diagrams below may be all you need to get started. Otherwise it may be worth while looking at the Sunfounder LED projects and an [introduction to breadboards](http://wiki.sunfounder.cc/index.php?title=Breadboard_Basics_%E2%80%93_Types)[^18]. The resistor used in both diagrams is 220 Ohms.
 
 <img style="border:1px solid black" src="/images/pwmfordummies/blinkingLED.png" align="center" width="600" height="300"/>
 <figcaption align="left"><center><i style="color:black;">Sunfounder Blinking LED breadboard setup</i></center></figcaption>
@@ -147,15 +149,15 @@ This setup will be used to demonstrate software PWM on a non-PWM pin.
 <img style="border:1px solid black" src="/images/pwmfordummies/RgbLed.png" align="center" width="600" height="300"/>
 <figcaption align="left"><center><i style="color:black;">Sunfounder RGB LED breadboard setup</i></center></figcaption>
 
-This setup will be used to demonstrate hardware and software PWM on a PWM pin. This setup shows an RGB LED pin connected to the GPIO hardware pin 18. A different hardware PWM pin may be used such as 12, 13, and 19. Also, the use of an RGB LED pin isn't required. Any type of LED will work. It will have to be wired up in a similar manner however. If you do choose to use an RGB LED pin it's important to note that only 2 of the colors can be controlled by hardware PWM. The pins need to be on different PWM channels. In the diagram above the LED colors attached to GPIO pins 17 and 27 can only be used for software PWM.
+This setup will be used to demonstrate hardware and software PWM on a PWM pin. This setup shows an RGB LED pin (green) connected to the GPIO hardware pin 18. A different hardware PWM pin may be used such as 12, 13, and 19. Also, the use of an RGB LED pin isn't required. Any type of LED will work. It will have to be wired up in a similar manner however, i.e., the LED positive lead should be connected to GPIO 18 (green wire) and the LED's ground lead (the longest lead) to the board's ground. If you do choose to use an RGB LED pin it's important to note that only 2 of the colors can be controlled by hardware PWM. The pins need to be on different PWM channels. In the diagram above the LED colors attached to GPIO pins 17 and 27 (blue and red) can only be used for software PWM.
 
-It'll be easier to play with the different combinations of PWM settings when both of the above setups are wired up at the same time. It allows for any of the GPIO pins to be used with the exception that for hardware PWM the LED(s) must be installed on hardware PWM pins (GPIO pins 13, 19, 18, and 12). If more than one hardware pin is used they must be on different channels.
+It'll be easier to play with the different combinations of PWM settings when both of the above setups are wired up at the same time. It allows for any of the GPIO pins to be used by _PWM Explorer_, with the exception that for hardware PWM the LED(s) must be installed on hardware PWM pins (GPIO pins 13, 19, 18, and 12). If more than one hardware pin is used they must be on different channels.
 
 ### Driving PWM using PWM Explorer
 
 PWM Explorer supports C and Go. Choosing C you can experiment with both Mark/Space and Balanced PWM Modes. The Go library I used, go-rpio[^5] only supports Mark/Space.
 
-As described in the [Prerequisites](#prerequisites) section above, I wrote an application, called _PWM Explorer_, to experiment with PWM on a Raspberry Pi. This software can be used to drive PWM on both PWM and non-PWM pins. It also supports changing the various PWM parameters like divisor, range, and pulse width to provide visual feedback on the effect of these paramenters on the behavior of the LEDs connected to the pins. This software is available on my [gpio GitHub repository](https://github.com/youngkin/gpio).
+As described in the [Prerequisites](#prerequisites) section above, I wrote an application, called _PWM Explorer_, to experiment with PWM on a Raspberry Pi. This software can be used to drive PWM on both PWM and non-PWM pins. It also supports changing the various PWM parameters like divisor, range, and pulse width to provide visual feedback on the effect of these parameters on the behavior of the LEDs connected to the pins. This software is available on my [gpio GitHub repository](https://github.com/youngkin/gpio)[^20].
 
 <img style="border:1px solid black" src="/images/pwmfordummies/pwmexplorer.jpg" align="center" width="1000" height="1000"/>
 <figcaption align="left"><center><i style="color:black;">PWM Explorer</i></center></figcaption>
@@ -182,7 +184,7 @@ This section uses an LED to demonstrate the effect of the various parameters on 
 
 The first thing to decide is what frequency you want the PWM clock to run at. It's frequency is specified directly when using Go and via the divisor when using C. Choosing this frequency is impacted by the type of PWM device being used, e.g., an LED or a motor. This article doesn't cover how to calculate this frequency, but there are sources that do[^2] [^3]. Instead I'll focus on the general impact of clock frequency on LED devices.
 
-You may or may not be aware that the human eye can detect flickering starting at about 60Hz and below. Flickering is more apparent using peripheral vision. Given this, a PWM clock frequency below 60Hz isn't ideal unless you're trying to create a blinking LED. Choosing the right Clock Frequency/Divisor will directly impact whether an LED appears to be a steady light source, flickering, or blinking.
+You may or may not be aware that the human eye can detect flickering starting at about 60Hz and below. Flickering is more apparent using peripheral vision. Given this, a PWM clock frequency to Range, `PWMClockFrequency / Range`, below 60Hz isn't ideal unless you're trying to create a blinking LED. Assuming the range can't be modified, choosing the right Clock Frequency/Divisor will directly impact whether an LED appears to be a steady light source, flickering, or blinking.
 
 Here are some settings to try this out _(these assume the LED is wired up to GPIO pin 18)_:
 
@@ -190,21 +192,21 @@ Here are some settings to try this out _(these assume the LED is wired up to GPI
 | ------- | -- | - |
 | PWM Pin | 18 | 1 |
 | Non-PWM Pin | N/A | N/A |
-| Clock Frequency/Clock Divisor | 5000 | 3840 |
+| Clock Frequency/Clock Divisor | 5000 (10000) | 3840 (1920) |
 | PWM Mode | markspace | markspace |
-| Range | 167 (80) | 167 (80) |
+| Range | 167 | 167 |
 | Pulse Width | 2 | 2 |
 | PWM Type | hardware | hardware |
 
-Using the above settings will result in a 30Hz frequency at the pin. As this is well below 60Hz flickering will be apparent. Changing the Range to 80 will result in a pin frequency of 62.5Hz. The result will be that there is no apparent flickering.
+Using the above settings will result in a 30Hz frequency at the pin. As this is well below 60Hz flickering will be apparent. Changing the PWM Clock Frequency/Clock Divisor will result in a pin frequency of 62.5Hz. The result will be that there is no apparent flickering.
 
 __NOTE:__ _The "General Purpose Clock Divisors" on the BCM2835 have a register width of 12 bits (see[^9], page 108, `DIVI` field bits 23 thru 12). This means the maximum value of the Clock Divisor is 4095 (0 to 2^12-1). The go-rpio[^5] further states that PWM Clock frequencies below 4688Hz will result in "unexpected behavior" (rpio.go, see comments for `SetFreq()` function). Other sources[^15] state that 9.6Mhz is the highest available PWM Clock frequency (19.2Mhz/2). I've seen unexpected results with both frequencies below 4688Hz and above 9.6Mhz._
 
 ##### Range
 
-Range effectively determines the frequency of the signal at the GPIO pin. This means that the frequency at the pin is defined by the ratio of `PWM Clock Frequency/Range`. Another thing range determines is the resolution of the signal going to the device. Recall that Duty Cycle is the ratio of Pulse Width to Range. Starting with a lower value of range, say 4, limits duty cycle to 0%, 25%, 50%, 75%, or 100%. This in turn limits things like the range of LED brightness or blinking that's available.
+Range effectively determines the frequency of the signal at the GPIO pin. This means that the frequency at the pin is defined by the ratio of `PWM Clock Frequency/Range`. Another thing range determines is the resolution of the signal going to the device. Recall that Duty Cycle is the ratio of Pulse Width to Range. Starting with a lower value of range, say 4, limits duty cycle to 0%, 25%, 50%, 75%, or 100%. To say it a different way, with a Range of 4 the only values for Pulse Width that make sense are 0, 1, 2, 3, 4. This in turn limits things like the range of LED brightness or blinking that's available.
 
-Since range impacts frequency at the pin and the resolution, it is important to choose the correct PWM clock frequency, Range, and Pulse Width in combination. Starting with a low PWM Clock frequency limits the choice of range which in turn limits the available duty cycles.
+Since range impacts frequency at the pin _and_ the resolution, it is important to choose the correct PWM clock frequency, Range, and Pulse Width in combination. Starting with a low PWM Clock frequency limits the choice of range which in turn limits the available duty cycles.
 
 As an example let's choose 2 extremes. For the first let's choose a PWM Clock frequency of 5kHz and a range of 5. The resolution is 5. This means are only 5 available duty cycles including full on and full off. As described above this limits the available brightness settings for a light like an LED.
 
@@ -222,7 +224,7 @@ Here are the settings to try this example _(the settings for the second example 
 
 Then change to Pulse Width to 5. This will be the brightest setting of the LED. While it is noticably brighter than a Pulse Width of 1, due to the narrow range it's not that much brighter.
 
-At the other extreme let's configure an LED for an extremely smooth transition from off to full brightness. This will require a higher resolution. Let's go crazy and decide that we'd like to have 10,000 steps of brightness available. This translates to a range of 10,000. To avoid visible flickering we need to have at least a 60Hz signal at the GPIO pin. Since the ratio of `PWM Clock Frequency/Range` determines the signal frequency at the pin, we will need a PWM Clock frequency of at least 600kHz, a range of 10000 times a minimum pin signal frequency of 60Hz (10,000 * 60 = 600,000).
+At the other extreme let's configure an LED for an extremely smooth transition from off to full brightness. This will require a higher resolution. Let's go crazy and decide that we'd like to have 10,000 steps of brightness available. This translates to a range of 10,000. To avoid visible flickering we need to have at least a 60Hz signal at the GPIO pin. Since the ratio of `PWM Clock Frequency/Range` determines the signal frequency at the pin, we will need a PWM Clock frequency of at least 600kHz. A range of 10000 times a minimum pin signal frequency of 60Hz is 600kHz (10,000 * 60 = 600,000). To check our work, `PWM Clock Frequency / Range`, 600,000 / 10,000 = 60 (Hz).
 
 ##### Pulse width
 
@@ -242,20 +244,20 @@ Here are the settings for the first example:
 | Pulse Width | 100 (5000) | 100 (5000) |
 | PWM Type | hardware | hardware |
 
-For the second example change the Clock Frequency (Go) to 5000, Clock Divisor (C) to 3840, the Range to 10000 and the Pulse Width to 100. The LED will flash for a very short period of time and will repeat flashing about once every 2 seconds (Clock Frequency/Range, 5000/10000 = 0.5Hz or once every 2 seconds). Now change the Pulse Width to 5000. Now the LED will be on for 1 second and off for 1 second. This changed the duty cycle from 2% to 50% with the corresponding change in the duration of the LED flash. This example shows how to create a blinking light using PWM, just choose a PWM Clock Frequency and range that result in a very low GPIO pin frequency, well below 60Hz.
+For the second example change the Clock Frequency (Go) to 5000, Clock Divisor (C) to 3840, the Range to 10000 and the Pulse Width to 5000. The LED will flash for a very short period of time and will repeat flashing about once every 2 seconds (Clock Frequency/Range, 5000/10000 = 0.5Hz or once every 2 seconds). Now change the Pulse Width to 5000. Now the LED will be on for 1 second and off for 1 second. This changed the duty cycle from 2% to 50% with the corresponding change in the duration of the LED flash. This example shows how to create a blinking light using PWM, just choose a PWM Clock Frequency and range that result in a very low GPIO pin frequency, well below 60Hz.
 
 ##### PWM Mode
 
 The available PWM modes are balanced and mark/space. Recall that with mark/space the signal is either on or off (high or low) for a fixed duration within the range. For example, with a duty cycle of 50% and a range of 10, the signal will be on for 5 consecutive seconds and off for 5 consecutive seconds. As explained above, balanced mode will spread this 50% duty cycle evenly across the range which will make the effects of the duty cycle less apparent, except for a dimming of the LED (e.g., a 10ms pulse, every 10ms, 500 times over 10 seconds).
 
-To illustrate this behavior set the Clock Frequency to 4688 (Go), Clock Divisor to 4095 (C), the PWM Mode to markspace, the Range to 1000, the pulse width to 10, and the PWM Type to hardware. This results in a blinking LED at a pin frequency of about 4.69Hz, or almost 5/second. Now change the PWM Mode to balanced. The language must be C to use balanced mode as go-rpio only supports mark/space. Now the blinking is no longer apparent.
+To illustrate this behavior set the Clock Frequency to 4688 (Go), Clock Divisor to 4095 (C), the PWM Mode to markspace, the Range to 1000, the Pulse Width to 10, and the PWM Type to hardware. This results in a blinking LED at a pin frequency of about 4.69Hz, or almost 5/second. Now change the PWM Mode to balanced. The language must be C to use balanced mode as go-rpio only supports mark/space. Now the blinking is no longer apparent.
 
 | Setting | Go | C |
 | ------- | -- | - |
 | PWM Pin | 18 | 1 |
 | Non-PWM Pin | N/A | N/A |
 | Clock Frequency/Clock Divisor | 4688 | 4095 |
-| PWM Mode | markspace (balanced) | markspace (balanced) |
+| PWM Mode | markspace (~~balanced~~) | markspace (balanced) |
 | Range | 1000 | 1000 |
 | Pulse Width | 10 | 10 |
 | PWM Type | hardware | hardware |
@@ -276,13 +278,13 @@ The code in the [PWM Explorer](https://github.com/youngkin/gpio) GitHub resposit
 
 1. On the Raspberry Pi there are only 4 hardware PWM pins and 2 channels. There are 2 pins per channel. This reduces the number of effective hardware PWM pins to 2.
 2. Care must be taken when specifying the Clock Frequency or Clock Divisor. The acceptable range for PWM Clock frequency is 4688Hz to 9.6Mhz.
-3. Range determines both the frequency at the GPIO pin and the resolution of the signal to a device like an LED or motor. The first is significant because at lower pin frequencies the on/off states of the pin become very apparent, as in a blinking LED light. The second, resolution, is important because it defines how fine grained the control of the device will be. For example, at low resolutions there are only a limited set of LED brightnesses that can be chosen and the differences are very apparent. At higher resolutions the range of brightness supported is much smoother and LED will change brightness in a much smoother, and less apparent, manner.
+3. Range determines both the frequency at the GPIO pin and the resolution of the signal to a device like an LED or motor. The first, frequency, is significant because at lower pin frequencies the on/off states of the pin become very apparent, as in a blinking LED light. The second, resolution, is important because it defines how fine grained the control of the device will be. For example, at low resolutions there are only a limited set of LED brightnesses that can be chosen and the differences are very apparent. At higher resolutions small changes in pulse width will result in a very small, hardly discernable, change in brightness. This is important when implementing something like a dimmer where the change in brightness from off to fully on should not change in large, discernable steps of brightness. I.e., a smoother transition through the range is desired.
 4. For higher resolutions (Range) a higher PWM clock frequency should be chosen. This ensures that the GPIO pin frequency won't drop too low, e.g., below the 60Hz frequency needed to avoid a flickering LED light.
 5. At higher GPIO pin frequencies (e.g., above 60Hz) changing the pulse width will cause the LED to appear dimmer or brighter.
 6. At lower GPIO pin frequencies (e.g., below 60Hz, and especially below 10Hz) pulse width can be used to cause obvious pulsing, as in a blinking LED light. The length of time the light is on is directly proportional to the pulse width.
 7. Choice of PWM mode also impacts the "smoothness" of the signal. Even at low GPIO frequencies, which would normally cause an LED to blink, balanced mode will reduce that effect, often to the point of rendering it unnoticable.
 8. PWM type (software vs. hardware) can affect the consistency of the period of a PWM signal to the point that even above 60Hz an LED might noticably flicker. It can also result in an inordinate amount of CPU load needed to support the desired clock rate. 
-9. Software PWM can be used, but the resulting signal can be too ragged to be used in some devices.
+9.  Software PWM can be used, but the resulting signal can be too ragged to be used in some devices.
 10. Setting a range that is greater than the PWM Clock frequency may seem odd, but it can be used effectively to create a low frequency, pulsing signal that can be used for, among other things, causing an LED to blink.
 
 ## Summary
@@ -308,10 +310,11 @@ Hopefully by now you have enough knowledge to start effectively using PWM on a R
 [^10]: A [Frequency to Period Calculator](https://www.sensorsone.com/frequency-to-period-calculator/) is handy for quick calculations, or validation, of frequency to period conversion (period = 1/frequency).
 [^11]: [Frequency page on Wikipedia](https://en.wikipedia.org/wiki/Frequency#CITEREFSerwayFaughn1989) discusses frequency and period
 [^12]: [RaspberryPPi Pinout](https://pinout.xyz/) is a good source that describes each pins' role, physical pin number, and for GPIO pins the GPIO pin number for the BCM2835 board. It has tabs that can be used to highlight which pins serve which purpose, e.g., PWM pins.
-[^13]: [pigpio](https://abyz.me.uk/rpi/pigpio/pdif2.html) has a C library. It has the distinction of performing hardware PWM on any GPIO pin.
+[^13]: [pigpio](https://abyz.me.uk/rpi/pigpio/pdif2.html) is primarily a Python library. It also has a C library. It has the distinction of performing hardware PWM on any GPIO pin. I'm not sure how it does this.
 [^14]: [Linear LED PWM](https://jared.geek.nz/2013/feb/linear-led-pwm) provides guidelines/formulas for getting linear scaling when changing the brightness of an LED via PWM. Googling "LED PWM linear brightness" brings up several other articles as well.
 [^15]: [Driving PWM output frequency](https://raspberrypi.stackexchange.com/questions/53854/driving-pwm-output-frequency) provides some interesting information and discussion on Raspberry Pis with 26 and 40 GPIO pins.
 [^16]: [Setting up your Raspberry Pi](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up) is the official documentation for getting started with a Raspberry Pi including things like required hardware as well as how to install the OS and other important details.
-[^17]: There is a 3rd way to generate PWM signals, [DMA or Direct Memory Access](https://stackoverflow.com/questions/50427275/raspberry-how-does-the-pwm-via-dma-work),. It won't be discussed here in this article.
+[^17]: There is a 3rd way to generate PWM signals, [DMA or Direct Memory Access](https://stackoverflow.com/questions/50427275/raspberry-how-does-the-pwm-via-dma-work). It won't be discussed here in this article.
 [^18]: [Breadboard Basics - Types](http://wiki.sunfounder.cc/index.php?title=Breadboard_Basics_%E2%80%93_Types) is a useful introduction to breadboards and how to use them.
 [^19]: [WiringPi library reference guide](http://wiringpi.com/reference/) documents the main WiringPi functions. The rest of the website also has some useful information.
+[^20]: [PWM Explorer](https://github.com/youngkin/gpio) is an application that accompanies this article that can be used to experiment with various PWM settings. It demonstrates PWM using both Go and C libraries.
