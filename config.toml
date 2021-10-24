@@ -1,5 +1,5 @@
 baseurl = "https://youngkin.github.io"
-title = "Rich Youngkin's software engineering blog"
+title = "Rich Youngkin"
 theme = "hugo-theme-cleanwhite-rsy"
 languageCode = "en-us"
 # Enable comments by entering your Disqus shortname
@@ -22,7 +22,8 @@ paginate = 5 #frontpage pagination
   #header_image = "images/MeAtJackson.jpeg"
   header_image = "images/main_go_wideandtall_darklayer.jpeg"
   logo_image = "images/YBrand_edit.png"
-  title = "Software Engineering"
+  title = "Rich on Software Engineering"
+  author = "Rich Youngkin"
   description = "Thoughts on software engineering, cloud architectures, Kuberentes deployments, and Raspberry Pis"
   slogan = "$ grep -rni \"The how's and why's\" ."
   SEOTitle = "Rich Youngkin Blog"

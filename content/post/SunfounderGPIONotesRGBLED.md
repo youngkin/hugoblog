@@ -1,7 +1,7 @@
 ---
 title: "Raspberry Pi GPIO in Go and C - RGB LED"
 description: "Use Pulse Width Modulation (PWM) on a Raspberry Pi to drive an RGB LED in Go and C"
-date: 2021-09-14T13:13:42-06:00
+date: 2021-10-21T13:13:42-06:00
 draft: false
 image: "images/pwmfordummies/sunfounderLED.jpeg"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]

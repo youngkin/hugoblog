@@ -3,7 +3,7 @@ title: "Raspberry Pi GPIO in Go and C - Blinking LED"
 description: "How to use the Raspberry Pi's GPIO pins to cause an LED to blink"
 date: 2021-09-11T13:13:42-06:00
 draft: false
-image: "images/sunfounderLED.jpeg"
+image: "images/pwmfordummies/sunfounderLED.jpeg"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]
 categories: ["raspberry-pi", "Go", "GPIO"]
 GHissueID: 1
