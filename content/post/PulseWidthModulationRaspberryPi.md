@@ -1,7 +1,7 @@
 ---
 title: "Pulse Width Modulation for Dummies"
 description: "An overview of PWM, with code examples, on the Raspberry Pi."
-date: 2021-10-21T13:13:42-06:00
+date: 2021-10-29T13:13:42-06:00
 draft: false
 image: "images/pwmfordummies/PWMPulsePerioddim.png"
 tags: ["raspberry-pi", "Golang", "C", "GPIO"]
