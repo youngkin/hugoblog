@@ -152,7 +152,7 @@ The setup for this exercise is similar to a combination of the [SunFounder Blink
 -->
 | LED | Breadboard setup |
 | -------- | ---------------- |
-| <img style="border:1px solid black" src="/images/pwmfordummies/redledimage.jpeg" width="300"/> |  <img style="border:1px solid black" src="/images/pwmfordummies/redled.png" height="600" width="600"/> |
+| <img style="border:1px solid black" src="/images/pwmfordummies/redledimage2.jpg" width="600"/> |  <img style="border:1px solid black" src="/images/pwmfordummies/redled.png" height="600" width="600"/> |
 
 This setup will be used to demonstrate software PWM on a non-PWM pin. The black wires are the ground. The upper black wire connects the board _GND_ pin to the ground bus on the breadboard. The lower black wire connects the ground bus to the negative leg on the red LED (negative is the shorter leg). The red wire is for positive current. It connects GPIO6 to the positive leg on the red LED (positive is the longer leg). Note the 220 Ohm resistor bridging the red wire and the positive pin on the LED. This is required to avoid burning out the LED.
 
