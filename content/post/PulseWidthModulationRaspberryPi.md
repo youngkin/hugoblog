@@ -4,8 +4,8 @@ description: "An overview of PWM, with code examples, on the Raspberry Pi."
 date: 2021-11-01T13:13:42-06:00
 draft: false
 image: "images/pwmfordummies/PWMPulsePerioddim.png"
-tags: ["raspberry-pi", "Golang", "C", "GPIO"]
-categories: ["raspberry-pi", "Golang", "GPIO"]
+tags: ["raspberry-pi", "Go", "C", "GPIO"]
+categories: ["raspberry-pi", "Go", "GPIO"]
 GHissueID: 1
 toc: true
 ---
