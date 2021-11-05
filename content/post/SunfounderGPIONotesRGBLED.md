@@ -10,13 +10,13 @@ GHissueID: 1
 toc: true
 ---
 
-This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder RGB LED project](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html)[^2]. You can find the full series [here](../../categories/gpio). It explores the use of Pulse Width Modulation (PWM) to drive an RGB LED as well as how to control an individual's LED brightness. The code samples will be in Go and C.
-
 <!--more-->
 
 ## Overview
 
-This is the second article in the series of Raspberry Pi GPIO programming. The first is [Raspberry Pi GPIO in Go and C - Blinking LED](https://youngkin.github.io/post/sunfoundergpionotesled/).
+This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. The first is [Raspberry Pi GPIO in Go and C - Blinking LED](https://youngkin.github.io/post/sunfoundergpionotesled/). It is a supplement to the [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/). 
+
+This article explores the use of Pulse Width Modulation (PWM) to drive an RGB LED, as well as how to control an individual LED pin's brightness. The code samples will be in Go and C.
 
 ## Prerequisites
 
@@ -83,7 +83,9 @@ This project uses PWM (Pulse Width Modulation) on GPIO pins to achieve the desir
 
 ## RGB LED in C (Software PWM)
 
-If you'd like you can review the [RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project. You should set up the breadboard as described in the project documentation or in the diagram below:
+Depending on your experience, you should consider reviewing the [RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project starting with [Components List and Introduction](https://docs.sunfounder.com/projects/raphael-kit/en/latest/component_list.html). Peruse it up through the _Play with C_ section. If you're experienced with basic electronics and components like breadboards and resistors you can skip it.
+
+You should set up the breadboard as described in the project documentation or in the diagram below:
 
 <img style="border:1px solid black" src="/images/pwmfordummies/RgbLed.png" align="center" width="600" height="300"/>
 <figcaption align="left"><center><i style="color:black;">Sunfounder RGB LED breadboard setup</i></center></figcaption>
@@ -94,23 +96,27 @@ The C code described in the Sunfounder [RGB LED project](https://docs.sunfounder
 
 Here is a slightly modified version of the Sunfounder C program that the controls an RGB LED:
 
-{{< gist youngkin c95e403dc223d56396c1cbea5d1f3ed7 >}}
+{{< gist youngkin 58aaaab75b2f16be7bd4a3621d17348b >}}
 
  Line 5 provides the command needed to build the program - `gcc -o rgbled rgbled.c  -lwiringPi -lpthread`. The `-l` flags reference the libraries needed to build the program. `-lwiringPi` refers to the WiringPi library. It should be installed in the correct place along with WiringPi and the build command should just work. Libraries are usually located in `/usr/lib`.
 
-Lines 14-16 specify, using the WiringPi pin numbering scheme, the GPIO pins 0, 1, and 2 for `LedPinRed`, `LedPinGreen`, and `LedPinBlue` respectively. 
+Lines 14-16 specify, using the WiringPi pin numbering scheme, the GPIO pins 0, 1, and 2 for `LedPinRed`, `LedPinGreen`, and `LedPinBlue` respectively.
+
+Line 20 contains the declaration of a signal handler for interrupt signals (SIGINT).
 
  Lines 23-25 use the `softPwmCreate()` function to initialize the pins. The initial characters in the function name, `softPwm`, indicate that the pins are being initialized for software PWM. The function's first parameter is the pin number. The second parameter is the starting pulse width. The final parameter is the range. See [Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi](https://youngkin.github.io/post/pulsewidthmodulationraspberrypi/) if you don't understand these terms.
 
- Lines 29-31, `softPwmWrite()` send the desired signal/voltage to the associated pin. The first parameter is the pin number, the same as in `softPwmCreate()` above. The second parameter is the pulse width. Notice that the pulse width was `0` in `softPwmCreate()`. This has the effect of setting the pin to zero volts. In `softPwmWrite()` the pulse width is set to the values specified by `r_val`, `g_val`, and `b_val`. These values represent the red, green, and blue values respectively. It is important to note that the desired voltage will continue to flow to the pins until reset by another `softPwmWrite()`.
+ Lines 29-31, `softPwmWrite()` send the desired signal/voltage to the associated pin. The first parameter is the pin number, the same as in `softPwmCreate()` above. The second parameter is the pulse width. Notice that the pulse width was `0` in `softPwmCreate()`. This has the effect of setting the pin to zero volts. In `softPwmWrite()` the pulse width is set to the values specified by `r_val`, `g_val`, and `b_val`. These values represent the red, green, and blue values respectively. The maximum effective value for the pulse width is the range. This will result in full brightness/voltage. Any values greater than range will have no additional impact. It is important to note that the desired voltage will continue to flow to the pins until reset by another `softPwmWrite()`.
 
- Lines 35-38 initialize the WiringPi library. The program exits if this initialization fails.
+ {{< gist youngkin 55e6a197e7da1d727e9d8cd616571c73 >}}
 
- Line 40 specifies a signal handler to be called when SIGINT signal is received by the program. This is the signal set when the user enters ctl-C at the keyboard. This signal handler will terminate the program.
+The code snippet above is a continuation of the program. It shows the `main()` function. Lines 2–5 initialize the WiringPi library. The program exits if this initialization fails.
 
- The calls to `ledColorSet(...)` within the `while(keepRunning)` loop at line 44 use hex numbers to set the colors. These are used to generate the full range of available colors. They must fall in the range of `0` to `0xff`, the range value specified in `softPwmCreate()`. I did change the values from the original Sunfounder code as the green LED used apparently has less resistance as it's quite a bit brighter than the red and blue LEDs and therefore throws off the generated colors. Similarly, the blue LED seems to have more resistance as it is quite a bit dimmer than the other 2 LEDs. Changing the values, at least for my specific RGB LED, generated truer colors. The code loops, changing the LED color, until terminated via a ctl-C at the keyboard.
+Line 7 specifies a signal handler to be called when SIGINT signal is received by the program. This is the signal set when the user enters ctl-C at the keyboard. This signal handler will terminate the program. This function was declared in the previous code snippet.
 
- 
+The calls to `ledColorSet(...)` within the `while(keepRunning)` loop at line 11 use hex numbers to set the colors. These are used to generate the full range of available colors. They must fall in the range of `0` to `0xff`, recall the range value was specified in `softPwmCreate()`. I did change the values from the original Sunfounder code as the green LED used apparently has less resistance as it's quite a bit brighter than the red and blue LEDs and therefore throws off the generated colors. Similarly, the blue LED seems to have more resistance as it is quite a bit dimmer than the other 2 LEDs. Changing the values, at least for my specific RGB LED, generated truer colors. The code loops, changing the LED color, until terminated via a ctl-C at the keyboard.
+
+
 {{< gist youngkin 7668e669ebbc578e9e7cafcc506ef203 >}}
 
 The code snippet above is a continuation of the previous code snippet. It contains the implementation of the interrupt handler described previously. It turns off all the RGB LED's pins, resulting in the LED being completely off. `pinMode()` sets the mode for the specified pin (first parameter) to `OUTPUT` (second parameter). This changes the pin from a PWM pin to a pin that can only be set to ON or OFF. The voltage of an output pin cannot be varied. `digitalWrite()` sets the voltage for the specified pin to zero (LOW).
@@ -131,16 +137,7 @@ This time I'm using WiringPi pins 24, 1, and 23 for red, green, and blue, which 
 This version of RGB LED is very similar to the software PWM version above. There are 2 significant differences.
 
 1. Note the pin numbering used in lines 14-16. The WiringPi pin numbers used here correspond to the hardware PWM pins available on the GPIO board.
-2. The `ledInit()` and `ledColorSet()` functions (lines 30-48) are quite different. In these functions pin mode is set to `PWM_OUTPUT` vs. the use of `softPwmCreate` and `pwmWrite` is used instead of `softPwmWrite`. Line 34 sets the range. Note that the pin number isn't specified for the `pwmSetRange()` call. There are 2 reasons for this. The first is that range is set at the channel level, not for individual pins. The second is that the WiringPi library doesn't allow for the 2 channels to be specified separately. It sets both channels to the same value. Here's the associated comment in the code:
-
-```
-/*
- * pwmSetRange:
- *	Set the PWM range register. We set both range registers to the same
- *	value. If you want different in your own code, then write your own.
- *********************************************************************************
- */
- ```
+2. The `ledInit()` and `ledColorSet()` functions (lines 30-48) are quite different. In these functions pin mode is set to `PWM_OUTPUT` vs. the use of `softPwmCreate` and `pwmWrite` is used instead of `softPwmWrite`. Line 34 sets the range. Note that the pin number isn't specified for the `pwmSetRange()` call. There are 2 reasons for this. The first is that range is set at the channel level, not for individual pins. The second is that the WiringPi library doesn't allow for the 2 channels to be specified separately. It sets both channels to the same value. Line 35, `pwmSetClock()`, (indirectly) sets the frequency. It specifies a _divisor_, in this case 2, that is used to divide the board's oscillator's clock frequency into the frequency used to control the pins. The divisor must be a number between 2 and 4095. As with `pwmSetRange()`, `pwmSetClock()` is specified at the channel level, not for individual pins. See [Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi](https://youngkin.github.io/post/pulsewidthmodulationraspberrypi/) for more discussion about clocks, frequency, and divisor as they relate to PWM.
 
 {{< gist youngkin b46a3eccdbbab8cd577cbbda87824425 >}}
 
@@ -160,11 +157,11 @@ Lines 27-29 define the pins to use for the red, green and blue elements of the L
 
 Lines 30-31 define default values to use for settings.
 
-Lines 35-75 contain comments and code that address the issues with trying to use 2 hardware PWM pins residing on the same channel as noted in the [Hardware PWM in C](#hardware-pwm-in-c) section above.
+Lines 35–75 set the Mode to PWM and theDutyCycle for the LED's pins. In `DutyCycle()`, the first parameter is the pulse width, called _duty_ by go-rpio. The second parameter is the range, called _cycle_ by go-rpio. The remainder of the lines contain comments and code that address the issues with trying to use 2 hardware PWM pins residing on the same channel as noted in the [Hardware PWM in C](#hardware-pwm-in-c) section above.
 
 {{< gist youngkin 11c97e8d84b134c40e3d15d6f3c639cf >}}
 
-This is part 2 of the program. The line numbering starts over, but logically the code is a continuation of the above. This gist shows `ledInit()`. It initializes the GPIO pins for use in the program. They set the mode (PWM), frequency, and duty cycle (providing parameters for pulse width and range (aka cycle)).
+This code snippet is a continuation of the program above. This gist shows `ledInit()`. It initializes the GPIO pins for use in the program. They set the mode (PWM), frequency, and duty cycle (providing parameters for pulse width and range (aka cycle)). As described in [Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi](https://youngkin.github.io/post/pulsewidthmodulationraspberrypi/), the specified frequency must be between 4688 and 9,600,000.
 
 {{< gist youngkin 188d35218c26003cfc029b5ca7a3f838 >}}
 
