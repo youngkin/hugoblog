@@ -98,15 +98,15 @@ Here is a slightly modified version of the Sunfounder C program that the control
 
 {{< gist youngkin 58aaaab75b2f16be7bd4a3621d17348b >}}
 
- Line 5 provides the command needed to build the program - `gcc -o rgbled rgbled.c  -lwiringPi -lpthread`. The `-l` flags reference the libraries needed to build the program. `-lwiringPi` refers to the WiringPi library. It should be installed in the correct place along with WiringPi and the build command should just work. Libraries are usually located in `/usr/lib`.
+ Line 8 provides the command needed to build the program - `gcc -o rgbled rgbled.c  -lwiringPi -lpthread`. The `-l` flags reference the libraries needed to build the program. `-lwiringPi` refers to the WiringPi library. It should be installed in the correct place along with WiringPi and the build command should just work. Libraries are usually located in `/usr/lib`. Line 9 provides the command to run the program.
 
-Lines 14-16 specify, using the WiringPi pin numbering scheme, the GPIO pins 0, 1, and 2 for `LedPinRed`, `LedPinGreen`, and `LedPinBlue` respectively.
+Lines 18-20 specify, using the WiringPi pin numbering scheme, the GPIO pins 0, 1, and 2 for `LedPinRed`, `LedPinGreen`, and `LedPinBlue` respectively.
 
-Line 20 contains the declaration of a signal handler for interrupt signals (SIGINT).
+Line 24 contains the declaration of a signal handler for interrupt signals (SIGINT).
 
- Lines 23-25 use the `softPwmCreate()` function to initialize the pins. The initial characters in the function name, `softPwm`, indicate that the pins are being initialized for software PWM. The function's first parameter is the pin number. The second parameter is the starting pulse width. The final parameter is the range. See [Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi](https://youngkin.github.io/post/pulsewidthmodulationraspberrypi/) if you don't understand these terms.
+ Lines 27-29 use the `softPwmCreate()` function to initialize the pins. The initial characters in the function name, `softPwm`, indicate that the pins are being initialized for software PWM. The function's first parameter is the pin number. The second parameter is the starting pulse width. The final parameter is the range. See [Pulse Width Modulation for Dummies, with a Slice of Raspberry Pi](https://youngkin.github.io/post/pulsewidthmodulationraspberrypi/) if you don't understand these terms.
 
- Lines 29-31, `softPwmWrite()` send the desired signal/voltage to the associated pin. The first parameter is the pin number, the same as in `softPwmCreate()` above. The second parameter is the pulse width. Notice that the pulse width was `0` in `softPwmCreate()`. This has the effect of setting the pin to zero volts. In `softPwmWrite()` the pulse width is set to the values specified by `r_val`, `g_val`, and `b_val`. These values represent the red, green, and blue values respectively. The maximum effective value for the pulse width is the range. This will result in full brightness/voltage. Any values greater than range will have no additional impact. It is important to note that the desired voltage will continue to flow to the pins until reset by another `softPwmWrite()`.
+ Lines 33-35, `softPwmWrite()` send the desired signal/voltage to the associated pin. The first parameter is the pin number, the same as in `softPwmCreate()` above. The second parameter is the pulse width. Notice that the pulse width was `0` in `softPwmCreate()`. This has the effect of setting the pin to zero volts. In `softPwmWrite()` the pulse width is set to the values specified by `r_val`, `g_val`, and `b_val`. These values represent the red, green, and blue values respectively. The maximum effective value for the pulse width is the range. This will result in full brightness/voltage. Any values greater than range will have no additional impact. It is important to note that the desired voltage will continue to flow to the pins until reset by another `softPwmWrite()`.
 
  {{< gist youngkin 55e6a197e7da1d727e9d8cd616571c73 >}}
 

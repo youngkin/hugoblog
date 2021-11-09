@@ -22,10 +22,10 @@ paginate = 5 #frontpage pagination
   #header_image = "images/MeAtJackson.jpeg"
   header_image = "images/main_go_wideandtall_darklayer.jpeg"
   logo_image = "images/YBrand_edit.png"
-  title = "Rich on Software Engineering"
+  title = "Topics in Software Engineering"
   author = "Rich Youngkin"
   description = "Thoughts on software engineering, cloud architectures, Kuberentes deployments, and Raspberry Pis"
-  slogan = "$ grep -rni \"The how's and why's\" ."
+  slogan = "How to do it and why does it work?"
   SEOTitle = "Rich Youngkin Blog"
   keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, GPIO, Microservice"
  
