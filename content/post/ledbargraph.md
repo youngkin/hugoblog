@@ -18,10 +18,10 @@ This is the third article in a series that explores GPIO programming on a Raspbe
 
 The [Sunfounder LED Bar Graph](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.3_led_bar_graph_c.html) project provides very good documentation regarding how to set up the project as well as describing the C code. This article is more geared towards describing what an LED bar graph is, what it's good for, and how to control an LED bar graph using Go as well as C.
 
-LED bar graphs consist of several LEDs embedded into a single component. In the picture to the right the bar graph contains 10 LEDs arranged side-by-side.
+LED bar graphs consist of several LEDs embedded into a single component. In the picture below the bar graph contains 10 LEDs arranged side-by-side.
 
-<img style="border:1px solid white; padding: 15px;" src="/images/ledbargraph/bargraphimage.png" align="right" width="250"/>
-
+<img style="border:1px solid white; padding: 15px;" src="/images/ledbargraph/bargraphimage.png" align="center" width="800"/>
+<figcaption align="left"><center><i style="color:black;">LED Bar Graph</i></center></figcaption>
 LED bar graphs have several uses including:
 
 * Progress indicators
