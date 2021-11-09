@@ -594,6 +594,16 @@ Specifically the block starting with `{{ if not (eq (.Param "showtoc") false) }}
 
 ### Theme Customizations
 
+---
+
+___NOTE: The manner of theme customizations described in this section is not the right way to customize a theme!___
+
+_Hugo has built in capability for customizing themes that doesn't require copying and modifiying the theme itself. See [Hugo Themes](https://tangenttechnologies.ca/blog/hugo-themes/) for a good description of the recommended approach to theme customization. So while the files referenced below are the same ones to be modified, copies of these files containing the overrides should be placed in the appropriate directories as noted in that article._
+
+___What follows below should be read with the above caution in mind.___
+
+---
+
 I used the [Clean White theme](https://themes.gohugo.io/hugo-theme-cleanwhite/), but I wanted a different look for:
 
 * Title and Description (looking for "green screen" feel)
