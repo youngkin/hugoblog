@@ -14,7 +14,7 @@ toc: true
 
 ## Overview
 
-This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. The first is [Raspberry Pi GPIO in Go and C - Blinking LED](https://youngkin.github.io/post/sunfoundergpionotesled/). It is a supplement to the [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/). 
+This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. The first is [Raspberry Pi GPIO in Go and C - Blinking LED](https://youngkin.github.io/post/sunfoundergpionotesled/). It is a supplement to the [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/).
 
 This article explores the use of Pulse Width Modulation (PWM) to drive an RGB LED, as well as how to control an individual LED pin's brightness. The code samples will be in Go and C.
 
@@ -37,13 +37,13 @@ You will also need some basic C  and Go programming knowledge as well as familia
 
 To compile and run the C program you'll need the [WiringPi](https://github.com/WiringPi/WiringPi)[^4] libary. It's easy to get:
 
-```
+```bash
 sudo apt-get install wiringpi
 ```
 
 Then test the installation using:
 
-```
+```bash
 pi@pi-node1:~/go/src/github.com/youngkin/gpio/rgbled $ gpio -v
 gpio version: 2.50
 Copyright (c) 2012-2018 Gordon Henderson
@@ -116,14 +116,13 @@ Line 7 specifies a signal handler to be called when SIGINT signal is received by
 
 The calls to `ledColorSet(...)` within the `while(keepRunning)` loop at line 11 use hex numbers to set the colors. These are used to generate the full range of available colors. They must fall in the range of `0` to `0xff`, recall the range value was specified in `softPwmCreate()`. I did change the values from the original Sunfounder code as the green LED used apparently has less resistance as it's quite a bit brighter than the red and blue LEDs and therefore throws off the generated colors. Similarly, the blue LED seems to have more resistance as it is quite a bit dimmer than the other 2 LEDs. Changing the values, at least for my specific RGB LED, generated truer colors. The code loops, changing the LED color, until terminated via a ctl-C at the keyboard.
 
-
 {{< gist youngkin 7668e669ebbc578e9e7cafcc506ef203 >}}
 
 The code snippet above is a continuation of the previous code snippet. It contains the implementation of the interrupt handler described previously. It turns off all the RGB LED's pins, resulting in the LED being completely off. `pinMode()` sets the mode for the specified pin (first parameter) to `OUTPUT` (second parameter). This changes the pin from a PWM pin to a pin that can only be set to ON or OFF. The voltage of an output pin cannot be varied. `digitalWrite()` sets the voltage for the specified pin to zero (LOW).
 
  The program can be run, after compiling, using `./rgbled`.
 
- ## RGB LED in C (Hardware PWM)
+## RGB LED in C (Hardware PWM)
 
  Since the Sunfounder documentation doesn't include a hardware PWM solution in C I decided to create one for myself. For this program modify the breadboard as shown below:
 
@@ -165,7 +164,7 @@ This code snippet is a continuation of the program above. This gist shows `ledIn
 
 {{< gist youngkin 188d35218c26003cfc029b5ca7a3f838 >}}
 
-This is part 3 of the program and shows the implementation of `main()`. Lines 2-4 initialize the go-rpio library. Line 5 makes sure the resources used are released when the program exits. 
+This is part 3 of the program and shows the implementation of `main()`. Lines 2-4 initialize the go-rpio library. Line 5 makes sure the resources used are released when the program exits.
 
 The remainder of the program prompts the user for the red, green, and blue values to use and the sets the pins approporiately.
 
