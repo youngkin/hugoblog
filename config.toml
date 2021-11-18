@@ -26,7 +26,7 @@ paginate = 5 #frontpage pagination
   author = "Rich Youngkin"
   description = "Thoughts on software engineering, cloud architectures, Kuberentes deployments, and Raspberry Pis"
   slogan = "How to do it and why does it work?"
-  SEOTitle = "Rich Youngkin Blog"
+  SEOTitle = "Rich Youngkin Topics in Software Engineering"
   keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, GPIO, Microservice"
  
   # Sidebar settings

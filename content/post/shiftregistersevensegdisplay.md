@@ -3,7 +3,7 @@ title: "Raspberry Pi GPIO in Go and C - Using a Shift Register & 7 Segment Displ
 description: "Why use a shift register and how to use it with a 7 segment display"
 date: 2021-11-14T13:13:42-06:00
 draft: false
-image: "images/sevensegdisplay/header2.png"
+image: "images/sevensegdisplay/header3.png"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]
 categories: ["raspberry-pi", "Go", "GPIO"]
 GHissueID: 1
@@ -25,6 +25,8 @@ Like the [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/e
 
 An additional goal of this article is to provide a more complete example of the capability of shift registers and 7-segment displays using a program written in C. This program is significantly more advanced in this area than the Sunfounder code. This article will also provide this same program written in Go.
 
+If you haven't worked with LEDs before you should consider having a look at my [Raspberry Pi GPIO in Go and C - Blinking LED](http://10.0.0.223:1313/post/sunfoundergpionotesled/) first. That article covers the basics of using an LED with Raspberry Pi GPIO and the associated C and Go libraries which isn't discussed in this article.
+
 ## Prerequisites
 
 This section is repeated in all articles in my [Raspberry Pi GPIO series](https://youngkin.github.io/categories/gpio/). If you've already completed a project from one of these articles you can skim this section, looking only for required items not included in other projects, specifically the shift register and 7-segment display.
@@ -33,7 +35,7 @@ If you don't have one, you'll need a Raspberry Pi. I used a Raspberry Pi 3B+ wit
 
 Other items you'll need include:
 
-* a [breadboard](https://www.amazon.com/dp/B082KBF7MM/ref=sspa_dk_detail_4?psc=1&pd_rd_i=B082KBF7MM&pd_rd_w=1tGTV&pf_rd_p=887084a2-5c34-4113-a4f8-b7947847c308&pd_rd_wg=fX8JB&pf_rd_r=44DE0RS1E9FD42RBYC7R&pd_rd_r=47cbdc7f-7834-455f-9429-ef74a438bd45&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUFVVkdZVUZRNUw3ODkmZW5jcnlwdGVkSWQ9QTA4MzI4MzYyU0VLNzBJM0cxRUVMJmVuY3J5cHRlZEFkSWQ9QTA0Mjk1NTMzSzNSWlNFUjU0NURBJndpZGdldE5hbWU9c3BfZGV0YWlsJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==) _(You may find [this tutorial on breadboards](http://wiki.sunfounder.cc/index.php?title=Breadboard_Basics_%E2%80%93_Types) helpful)_,
+* a [breadboard](https://www.amazon.com/dp/B082KBF7MM/ref=sspa_dk_detail_4?psc=1&pd_rd_i=B082KBF7MM&pd_rd_w=1tGTV&pf_rd_p=887084a2-5c34-4113-a4f8-b7947847c308&pd_rd_wg=fX8JB&pf_rd_r=44DE0RS1E9FD42RBYC7R&pd_rd_r=47cbdc7f-7834-455f-9429-ef74a438bd45&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUFVVkdZVUZRNUw3ODkmZW5jcnlwdGVkSWQ9QTA4MzI4MzYyU0VLNzBJM0cxRUVMJmVuY3J5cHRlZEFkSWQ9QTA0Mjk1NTMzSzNSWlNFUjU0NURBJndpZGdldE5hbWU9c3BfZGV0YWlsJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==) _(You may find [this tutorial on breadboards](https://www.sciencebuddies.org/science-fair-projects/references/how-to-use-a-breadboard) helpful)_,
 * some [jumper wires](https://www.amazon.com/dp/B08HZ26ZLF/ref=syn_sd_onsite_desktop_19?psc=1&spLa=ZW5jcnlwdGVkUXVhbGlmaWVyPUExRFpLWElCRjg1MUNMJmVuY3J5cHRlZElkPUEwMjMyMTE1M01aOFE3U1BQS09YSiZlbmNyeXB0ZWRBZElkPUEwODE5NTMxMktEMTlZRjEyQjBJNiZ3aWRnZXROYW1lPXNkX29uc2l0ZV9kZXNrdG9wJmFjdGlvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==),
 * a [220 Ohm resistor](https://www.amazon.com/Resistor-Tolerance-Resistors-Assortment-Certificated/dp/B08QR72BFW/ref=sr_1_8?crid=1E3LWKK431TDV&keywords=resistor+assortment&qid=1636936543&qsid=143-6049131-7886617&s=industrial&sprefix=resistor%2Cindustrial%2C203&sr=1-8&sres=B085NQZNTY%2CB072BL2VX1%2CB07N1ZK8CC%2CB098BKR447%2CB08QR72BFW%2CB07L851T3V%2CB09CZ18Z31%2CB08PF3HNMD%2CB07D54XMFK%2CB088WQMNYK%2CB08NY3XR96%2CB06WRQS97C%2CB07PXYVP3J%2CB07D2Z45CG%2CB089Q88QPN%2CB08ZRYH9VC%2CB08FD1XVL6%2CB08QRH6HFT%2CB07PTNN78Z%2CB07P3MFG5D),
 * a [74HC595 shift register](https://www.amazon.com/Texas-Instruments-SN74HC595N-Registers-3-State/dp/B01J6WI7RA/ref=sr_1_5?keywords=shift+register+74hc595&qid=1636936939&qsid=143-6049131-7886617&s=industrial&sr=1-5&sres=B07HFWB9L9%2CB01J6WI7RA%2CB0993RQGQY%2CB09CTHBH9P%2CB07B9DCR17%2CB08Z8B9QXY%2CB06WD3W8Q3%2CB07ZHGL8LN%2CB0842PRWJG%2CB07DR7PYYT%2CB01HEPJOV4%2CB07WNHBP86%2CB07RL1398S%2CB07B9D7SPC%2CB08Z3NH5BK%2CB07MQ5X9Q3%2CB07DL13RZH%2CB08JTXNP9Q%2CB08BR1PPQM%2CB01D8KOZF4)
@@ -81,7 +83,7 @@ If you want to veer away from the cookbook style of the Sunfounder docs you'll n
 
 ## Information that would have been helpful
 
-The [Sunfounder 7-Segment Display](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.4_7-segment_display_c.html) project documentation pretty much just jumps into how to wire up the breadboard and the code without mentioning much about the hardware components, especially the shift register. Even the code description was a little confusing given my lack of knowledge about shift registers. I accidentally stumbled across the [Sunfounder 7-Segment Python](https://docs.sunfounder.com/projects/electronic-kit/en/latest/lesson_19_7-segment.html) project documentation that did provide some useful information on the 7-segment display, but still no mention of the shift register. This project could easily be done without the shift register, in fact many other articles on 7-segment displays do just that. So why does the project use a shift register? Why not just wire the 7-segment display directly to the GPIO pins? Clearly there's something to the shift register and I wanted to know what that was. But first, let's have a short discussion about 7-segment displays.
+The [Sunfounder 7-Segment Display](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.4_7-segment_display_c.html) project documentation pretty much just jumps into how to wire up the breadboard and the code without mentioning much about the hardware components, especially the shift register. Even the code description was a little confusing given my lack of knowledge about shift registers. I accidentally stumbled across the [Sunfounder 7-Segment Python](https://docs.sunfounder.com/projects/electronic-kit/en/latest/lesson_19_7-segment.html) project documentation that did provide some useful information on the 7-segment display, but still no mention of the shift register. This project could easily be done without the shift register, in fact many [other articles on 7-segment displays](https://www.circuitbasics.com/arduino-7-segment-display-tutorial/) do just that. So why does the project use a shift register? Why not just wire the 7-segment display directly to the GPIO pins? Clearly there's something to the shift register and I wanted to know what that was. It turns out, for me anyway, that this project is really about shift register with the 7-segment display being merely a tool to visualize how shift registers work. But before we get to shift registers, let's have a short discussion about 7-segment displays.
 
 ### What is a 7-segment display?
 
@@ -90,19 +92,20 @@ So what is a 7-segment display? Well, to be pendantic, it has 8 segments if you 
 Pinout diagram | LED Identification diagram
 -- | --
 <img style="border:1px solid black" src="/images/sevensegdisplay/7segmentdisplaypinout.png" align="center" width="150"/> | <img style="border:1px solid black" src="/images/sevensegdisplay/sevensegmentdisplaydiagram.png" align="center" width="200"/>
+<figcaption align="left"><center><i style="color:black;"><a href="https://www.circuitbasics.com/arduino-7-segment-display-tutorial/">Image Credit: Circuit Basics</a></i></center></figcaption>
 
 First of all, the diagram to the above left shows the pinout designations for the 7-segment display. This diagram shows the middle pins on the top and the bottom with a (-) annotation. This designates those pins to be the ground pins for the display. The letters on the remaining pins correspond to the letters in the LED identification diagram on the right. For example, applying power to the 'A' pin on the display will light up the LED labeled 'A' in the diagram to the right. The letters "DP" stand for decimal point.
 
 For this project we need what is known as a common cathode 7-segment display. This is what the diagram above left is showing _(the middle pins on the top and the bottom have a (-) annotation)_. All this means is that all the negative terminals of the LEDs in the display are connected to a common ground pin. Common anode is the other type, which as you might expect, means all the LEDs' positive terminals are connected to the same pin.
 
 <img style="border:1px solid black" src="/images/sevensegdisplay/commoncathodeoranode.png" align="center" width="600" height="300"/>
-<figcaption align="left"><center><i style="color:black;">Breadboard setup</i></center></figcaption>
+<figcaption align="left"><center><i style="color:black;"><a href="https://www.circuitbasics.com/arduino-7-segment-display-tutorial/">Image Credit: Circuit Basics</a></i></center></figcaption>
 
 If you're using the Sunfounder kit the 7-segment display is a common cathode display. If you got a 7-segment display from another source you might want to verify it's type. Determining whether a 7-segment display is a common cathode or common anode is fairly easy to do. Paraphrasing from [How to set up seven segment displays on the Arduino](https://www.circuitbasics.com/arduino-7-segment-display-tutorial/), _which is also the source of the above diagram_, the steps are as follows:
 
 > While the above diagram shows an Arduino, hooking it up to a Raspberry Pi is very similar.
 > 
-1. You'll need the Raspberry Pi with the 3.3v power and ground pins hooked up to a breadboard.
+1. You'll need the Raspberry Pi 3.3v power pin hooked up to a breadboard.
     1. Connect the power from the Raspberry Pi as shown above (or to the breadboard's power bus).
     2. Connect a resistor between the 2 sides of the breadboard, or from the power bus to one side of the breadboard.
 2. Connect a jumper wire (red) on the far end of the resistor from the power source.
@@ -123,14 +126,20 @@ If you're using the Sunfounder kit the 7-segment display is a common cathode dis
 
 There are [several types of shift registers](https://www.elprocus.com/what-is-a-shift-register-different-types-counters-and-applications/). For this project we're using what's known as a "Serial In, Parallel Out" (SIPO) shift register. This type of shift register converts a serial input into a parallel output. For example, several pulses of a signal generated on a single Raspberry Pi GPIO pin can be accumulated by the shift register and then sent as a single parallel output to a 7-segment display. This is exactly what is being done in this project.
 
-So why use a shift register? Well for one, as noted above, it only takes one GPIO pin to drive 8 pins on a 7-segment display _(not quite true, this will be explained in more detail farther into the article)_. Versions of this project without a shift register take 8 GPIO pins to accomplish the same thing. So, one use of a shift register is to conserve GPIO pins. This is especially true of LED displays with a very large number of LEDs that perhaps wouldn't be usable due to a lack of available GPIO pins. Although this isn't true of a 7-segment display, some devices only take parallel input. So for this kind of situation, a SIPO shift register is useful in converting a serial source into a parallel output.
+So why use a shift register? Well for one, as noted above, it only takes one GPIO pin to drive 8 pins on a 7-segment display _(not quite true, this will be explained in more detail farther into the article)_. Versions of this project without a shift register take 8 GPIO pins to accomplish the same thing. So, one use of a shift register is to conserve GPIO pins. This is especially true of LED displays with a very large number of LEDs that perhaps wouldn't be usable due to a lack of available GPIO pins. Although this isn't true of a 7-segment display, some devices only take parallel input. So for this kind of situation, a SIPO shift register is mandatory in converting a serial source into a parallel output.
 
 #### Shift register anatomy
 
 The 74HC595 shift register has a couple of logical components that are pertinent to this article:
 
 * Input shift register - This is a series of connected flip-flop devices that receive incoming (serial) data on the receipt of each synchronizing clock pulse (more about this later). This register is comprised of outputs that are named in sequence from Qa' to Qh', i.e., Qa', Qb', ..., Qh'.
-* Output or storage register - This is another series of connected flip-flop devices that transfer the serial data in parallel to a connected device. This register is comprised of outputs that are named in sequence from Qa to Qh.
+* Output or storage register - This is another series of connected flip-flop devices that transfer the serial data in parallel to a connected device. This register is comprised of outputs that are named in sequence from Qa to Qh, and Qh' (more on Qh' below). 
+
+This anatomy is shown graphically in the following, albeit somewhat complex, diagram from the [Texas Instruments CD74HC595 8-Bit Shift Registers with 3-State Output Registers datasheet](https://www.ti.com/lit/ds/symlink/cd74hc595.pdf?ts=1636840974607&ref_url=https%253A%252F%252Fwww.google.com%252F). The first column of 8 boxes to the left, labeled C1 or C2, comprise the input shift register. The second column of 8 boxes to the right, labeled C3, comprise the output shift register. The output register's output pins can be seen at the far right, labeled Qa through Qh, and Qh'. The input and control channels, as shown by OE, RCLK, SRCLR, SRCLK, and SER in the upper left of the diagram, are discussed in more detail below.
+
+<img style="border:1px solid black" src="/images/sevensegdisplay/74HC595Schematic.png" align="center" width="600"/>
+<figcaption align="left"><center><i style="color:black;"><a href=https://www.ti.com/lit/ds/symlink/cd74hc595.pdf?ts=1636840974607&ref_url=https%253A%252F%252Fwww.google.com%252F">TI CD74HC595 schematic diagram - Image Credit: Texas Instruments</a></i></center></figcaption>
+
 
 More information pertaining to the Q* names for the registers' outputs is provided below.
 
@@ -139,23 +148,24 @@ It is a little confusing for the entire device to be called shift register as we
 Pin Diagram | Photo
 --|--
 <img style="border:1px solid black" src="/images/sevensegdisplay/74hc595shiftregister.png" align="center" width="600" /> |<img style="border:1px solid black" src="/images/sevensegdisplay/74HC595Photo.png" align="center" width="370"/>
+<figcaption align="left"><center><i style="color:black;"><a href=https://www.ti.com/lit/ds/symlink/cd74hc595.pdf?ts=1636840974607&ref_url=https%253A%252F%252Fwww.google.com%252F">Image Credit: Texas Instruments</a> (Left) and Author (Right)</i></center></figcaption>
 
-The diagram at above left shows the pinouts for a 74HC595 shift register. The photo at above right is in the same orientation as the pin diagram, namely GND is in the lower left, Vcc is in the upper right, and the "notch" is at the top center. The pins are defined as follows:
+The diagram at above left shows the pinouts for a SN74HC595 shift register. The photo at above right is in the same orientation as the pin diagram, namely GND is in the lower left, Vcc is in the upper right, and the "notch" is at the top center. The pins are defined as follows:
 
 * __Pin 15__ (right side, 2nd from the top), Qa, is the first output pin. Qa is also known as Q0.
 * __Pins 1-7__, Qb-Qh, are the remaining output pins. Notice that there are 8 output pins (including Qa above). Having 8 outputs makes this an 8-bit shift register. Qb-Qh are also known as Q1-Q7.
 * __Pin 8__, GND is the ground pin.
 * __Pin 16__, Vcc, is the power-in pin.
-* __Pin 14__, SER, is the serial input pin. I.e., the pin that takes the incoming serial data pulses. This is sometimes referred to as DS, SI, or SDI.
+* __Pin 14__, SER, is the serial input pin. This is the pin that takes the incoming serial data pulses. This is sometimes referred to as DS, SI, or SDI.
 * __Pin 11__, SRCLK, is the pin that accepts the synchronization signal that indicates 1 bit of data has been transmitted to the SER pin. This type of signal is called a clock. SRCLK stands for shift register clock. SRCLK is also known as sh_cp.
 * __Pin 12__, RCLK, is the pin that accepts the synchronization signal that indicates all 8 shift register bits have been populated and it's time to transfer the bits, in parallel, to the output/storage register and thereby to the device connected to the output pins, Qa-Qh. RCLK is also known as st_cp or latch.
 * __Pin 10__, SRCLR, is used to clear the current values of the shift register. SRCLR stands for shift register clear. SRCLR is also known as MR. If clearing the shift register is not required it can be connected to the power source which generates a HIGH signal (or 1). To clear the shift register the SRCLR pin is set to LOW (or 0). It must be set back to HIGH before the shift register is functional again.
 * __Pin 13__, OE, is used to block the availability of the output or storage register. The OE pin's effect is temporary. When it's set to LOW (0) the data in the output register is accessible. When it's HIGH(1) the data is not accessible. Setting it from HIGH to LOW makes the data once again accessible. Unlike the SRCLR pin, it does not clear the register. If disabling the output register is not required it can be connected to ground.
-* __Pin 9__, Qh', is used to daisy chain multiple shift registers. For example, imagine a project that needed to control 16 LEDs in a parallel fashion. In this case a single 8-bit shift register is inadequate, we need 2 that can communicate in some manner. We can get the other required 8 bits from a second 8-bit shift register if we connect the Qh' output from the first to pin 14, SER, on the second shift register. Daisy chaining shift registers is beyond the scope of this project, but you can read more about it on [Multilple Shift-out Registers on Arduino - part 1](https://www.electroschematics.com/multiple-shift-registers-arduino-part-1/).
+* __Pin 9__, Qh', is used to daisy chain multiple shift registers. For example, imagine a project that needed to control 16 LEDs in a parallel fashion. In this case a single 8-bit shift register is inadequate, we need 2 that can communicate in some manner. We can get the other required 8 bits from a second 8-bit shift register. To link the 2 shift registers we connect the Qh' output from the first, to pin 14, SER, on the second shift register. Daisy chaining shift registers is beyond the scope of this project, but you can read more about it on [Multilple Shift-out Registers on Arduino - part 1](https://www.electroschematics.com/multiple-shift-registers-arduino-part-1/).
 
 #### Shift register in operation
 
-As stated above, input data is stored in the input shift register. Data is transferred on each pulse of the SRCLK input. When an SRCLK input is received, data on a prior Q*' pin is shifted to the next Q*' register in the sequence. When the input shift register has been populated an RCLK signal causes all of the input register contents to be transferred to the output register. The following table illustrates this behavior. To keep things simnple, I'm limiting the example to 4 bits, Qa* to Qd*. The input bit sequence will be `1011`. The first bit, `1`, will be transmitted at t0. The transmitted bits are indicated in parentheses next to the time indication (e.g., `t0(1)`). The 4 bits are available on a signal from RCLK at t4.
+As stated above, input data is stored in the input shift register. Data is transferred on each pulse of the SRCLK input. When an SRCLK input is received, data on a prior Q*' pin is shifted to the next Q*' register in the sequence. When the input shift register has been populated an RCLK signal causes all of the input register contents to be transferred to the output register. The following table illustrates this behavior. To keep things simnple, I'm limiting the example to 4 bits, Qa* to Qd*. The input bit sequence will be `1011`. The first bit, `1`, will be transmitted at t0. The transmitted bits are indicated in parentheses next to the time indication (e.g., `t0(1)`). The 4 bits become available at the output register on a signal from RCLK at t4.
 
  SRCLK  | t0 (1) | t1 (0) | t2 (1) | t3 (1)| t4 |
  -- | -- | -- | --  | -- | --
@@ -163,13 +173,15 @@ As stated above, input data is stored in the input shift register. Data is trans
  Qb' | - | 1  | 0  | 1  | -  
  Qc' | - | -  | 1  | 0  | -  
  Qd' | - | -  | -  | 1  | -  
- RCLK| - | -  | -  | -  | 1
+ __RCLK__| - | -  | -  | -  | 1
  Qa  | - | -  | -  | -  | 1
  Qb  | - | -  | -  | -  | 1
  Qc  | - | -  | -  | -  | 0
  Qd  | - | -  | -  | -  | 1
 
- Notice that in the output sequence of bits, if the output bits are read from Qa to Qd, the bit sequence is reversed. I.e., `1101` vs. the input sequence of `1011`. This manner of shifting is called Most Significant Bit (MSB) shifting. It starts with the leftmost bit as in this example. This must be kept in mind or unexpected results may occur. It is possible to shift in a more intuitive way, Least Significant Bit (LSB). To do this the shifting must start with the least, or rightmost, input bit. In C, MSB shifting is done using the `<<` shift operator. LSB shifting is done by using the `>>` shift operator. The impact of shift method will become more obvious when we get to how the shift register (not the input shift register) is used in conjunction with the 7-segment display.
+ Notice that in the output sequence of bits, if the output bits are read from Qa to Qd, the bit sequence is reversed. That is, `1101` vs. the input sequence of `1011`. This manner of shifting is called Most Significant Bit (MSB) shifting. It starts with the leftmost bit as in this example. This must be kept in mind or unexpected results may occur. It is possible to shift in a more intuitive way, Least Significant Bit (LSB). To do this the shifting must start with the least, or rightmost, input bit. In C, MSB shifting is done using the `<<` shift operator. LSB shifting is done by using the `>>` shift operator. The impact of shift method will become more obvious when we get to how the shift register (not the input shift register) is used in conjunction with the 7-segment display. [See Wikipedia for more about MSB and LSB](https://en.wikipedia.org/wiki/Bit_numbering).
+
+I simplified things a little bit when I stated above that only one Raspberry Pi GPIO pin is needed to drive the 8 LED segments in the 7-segment display. The one pin I identified is used for the SER (serial data in) pin. A minimum of 2 more are needed; 1 for the SRCLK pin and the other for the RCLK pins. As shown above these are required to advance the clock on the input shift register and transfer data from the input shift register to the output register respectively. So that's now 3 pins to drive the 8 LEDs on the 7-segment display. This is still a good tradeoff. But 2 more GPIO pins are needed if the SRCLR and OE pins are needed. So now that's 5 GPIO pins to drive 8 LED segments. Still a net gain of 3 pins. However, the savings become even greater when shift registers are daisy-chained as discussed above. Without requiring additional GPIO pins it is possible to control 16 or even more LEDs from those 5 GPIO pins. The savings become more significant as more devices, e.g., LEDs, need to be controlled.
 
 ### How does this project use the shift register and 7-segment display?
 
@@ -191,18 +203,17 @@ Using the diagrams below we can ascertain what number will be displayed at the 7
 Pinout diagram | LED Identification diagram
 -- | --
 <img style="border:1px solid black" src="/images/sevensegdisplay/7segmentdisplaypinout.png" align="center" width="150"/> | <img style="border:1px solid black" src="/images/sevensegdisplay/sevensegmentdisplaydiagram.png" align="center" width="200"/>
+<figcaption align="left"><center><i style="color:black;"><a href="https://www.circuitbasics.com/arduino-7-segment-display-tutorial/">Image Credit: Circuit Basics</a></i></center></figcaption>
 
 7-segment display pins A-F will have the value 1, G and DP will have the values 0. Mapping this to the above LED Identification diagram we can see that the number displayed will be `0`.
-
-I simplified things a little bit when I stated above that only one Raspberry Pi GPIO pin is needed to drive the 8 LED segments in the 7-segment display. The one pin I identified is used for the SER (serial data in) pin. A minimum of 2 more are needed; 1 for the SRCLK pin and the other for the RCLK pins. Recall that these are required to advance the clock on the input shift register and transfer data from the input shift register to the output register respectively. So that's now 3 pins to drive the 8 LEDs on the 7-segment display. This is still a good tradeoff. But 2 more GPIO pins are needed if the SRCLR and OE pins are needed. So now that's 5 GPIO pins to drive 8 LED segments. Still a net gain of 3 pins. However, the savings become even greater when shift registers are daisy-chained as discussed above. Without requiring additional GPIO pins it is possible to control 16 or even more LEDs from those 5 GPIO pins. The savings become more significant as more devices, e.g., LEDs, need to be controlled.
 
 ## Setup and Code
 
 <img style="border:1px solid black" src="/images/sevensegdisplay/breadboard.png" align="center" width="800"/>
-<figcaption align="left"><center><i style="color:black;">Sunfounder wiring diagram</i></center></figcaption>
+<figcaption align="left"><center><i style="color:black;">Sunfounder wiring diagram - <a href="https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.4_7-segment_display_c.html">Image Credit - Sunfounder</a></i></center></figcaption>
 
 <img style="border:1px solid black" src="/images/sevensegdisplay/flatbreadboard2.png" align="center" width="800"/>
-<figcaption align="left"><center><i style="color:black;">Actual wiring (mostly)</i></center></figcaption>
+<figcaption align="left"><center><i style="color:black;">Actual wiring (mostly) - Image Credit: Author</i></center></figcaption>
 
 The breadboard should be wired as illustrated in the above diagram _(as indicated in the [Sunfounder 7-Segment Display](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.4_7-segment_display_c.html) project documentation)_. One very important thing to note, something that I spent way too much time debugging, is that the resistor connecting the ground pin on the 7-segment display must be connected to the ground or negative bus on the breadboard. In all my prior projects I've connected the resistor to the positive breadboard bus. I initially missed this detail and the 7-segment display didn't display anything. One other thing I got wrong on the initial wiring is that I had the 74HC595 output register pins connected incorrectly to the 7-segment display. This is easy to do. I debugged this by noting wich LED segments lit up for which expected number. After going through several numbers it became apparent that I had the 'G' and 'E' pins on the 7-segment display reversed.
 
@@ -226,7 +237,10 @@ Lines 12 and 13 provide information on how to build and run the program.
 
 Lines 27 and 28 define the GPIO pins that drive the SRCLR and OE pins respectively. Note that the GPIO pin numbers are the [WiringPi](https://github.com/WiringPi/WiringPi) pin numbers. If you decide you want to see this behavior in action, wire pin 24 to the SRCLR shift register pin, and wire pin 29 to the OE shift register pin instead of positive and ground respectively.
 
-Lines 32 and 33 define an array, `SegCode`, that contains the hexidecimal numbers that should be shifted into the shift register in order to display a number that matches the index of a particular number in the array. For example, to display an 8 `SegCode[8]` should be used. Note that these numbers reflect the use of the MSB form of shifting. The numbers would be different if the LSB shifting form were used. For example, the number to use to display 0, as shown on line 32, is `0x3F` (`0011 1111`). To display 0 using the LSB method the hex number `0xFC`(`1111 1100`) and the C right-shift operator, `>>`, should be used.
+<img style="border:1px solid black" src="/images/sevensegdisplay/74hc595shiftregister.png" align="center" width="300" /> 
+<figcaption align="left"><center><i style="color:black;"><a href=https://www.ti.com/lit/ds/symlink/cd74hc595.pdf?ts=1636840974607&ref_url=https%253A%252F%252Fwww.google.com%252F">Image Credit: Texas Instruments</a></i></center></figcaption>
+
+Lines 32 and 33 define an array, `SegCode`, that contains the hexidecimal numbers that will be shifted into the shift register in order to display a number that matches the index of a particular number in the array. For example, to display an 8 `SegCode[8]` should be used. Note that these numbers reflect the use of the MSB form of shifting. The numbers would be different if the LSB shifting form were used. For example, the number to use to display 0, as shown on line 32, is `0x3F` (`0011 1111`). To display 0 using the LSB method the hex number `0xFC`(`1111 1100`) and the C right-shift operator, `>>`, should be used.
 
 {{< gist youngkin f9f9d14b5405805f9f2ef31ec36d7c46 >}}
 
@@ -240,9 +254,9 @@ This code snippet demonstrates 2 methods of turning off all the LEDs in the 7-se
 
 In `shiftRegClr`, lines 1 through 11, note the use of the RCLK pin on lines 4 and 6. The clock signal to that pin must be pulsed, i.e., set to HIGH followed by LOW, in order to make the input shift register contents available to the output register. Also note that the SRCLR pin needs to be reset to HIGH after the operation to reenable the shift register.
 
-Lines 16 through 28 show the method of writing zeros to all the input shift register bits to clear the input shift register (`zeroClear()`). This is functionally equivalent to using the SRCLR method, they both set the input shift register bits to 0. It does take a lot more effort however. The `for` loop in lines 18 through 23 shifts a zero into each bit of the input shift register. It repeats the process 8 times, advancing the SRCLK with each write, to fill the input shift register bits. Lines 20 and 22 send the SRCLK pulse to advance the input shift register bits. Strictly speaking, it's not necessary to shift the `0` and `&` it to `0x80` on line 19. It would be sufficient to merely write `0` to the SDI pin. However, it is necessary to use this method of writing to the SDI pin write any other number, e.g., `0x3F` into the input shift register.
+Lines 16 through 28 show the method of writing zeros to all the input shift register bits to clear the input shift register (`zeroClear()`). This is functionally equivalent to using the SRCLR method, they both set the input shift register bits to 0. It does take a lot more effort however. The `for` loop in lines 18 through 23 shifts a zero into each bit of the input shift register. It repeats the process 8 times, advancing the SRCLK with each write, to fill the input shift register bits. Lines 20 and 22 send the SRCLK pulse to advance the input shift register bits. Strictly speaking, it's not necessary to shift the `0` and `&` it to `0x80` on line 19. It would be sufficient to merely write `0` to the SDI pin. However, it is necessary to use this method of writing to the SDI pin write any other number, e.g., `0x3F` into the input shift register. 
 
-Finally, lines 25 through 27 send the pulse signal to the RCLK pin.
+As with `shiftRegClr()` above, lines 25 and 27 toggle the RCLK pin to transfer the bits to the output register.
 
 {{< gist youngkin ce54e1d33e27f7005dcabfde0611f0e6 >}}
 
@@ -254,7 +268,9 @@ Lines 22 through 29 implement `oeToggle()`, which toggles the OE pin to HIGH (1)
 
 {{< gist youngkin beb013db757698a7467564c6f118e99a >}}
 
-`hc595_shift()` is responsible for shifting the various bits of the input number, `dat`, into the input shift register. With the expception that the input number is variable based on what the value of `dat` is, the function is implemented exactly like `zeroClr()` above. For those that might have trouble imagining how the `<<` works in conjuction with the `&` operator, like I did, here's a short example using `0x3f` or `0011 1111` as an example. Note that the order of precedence of the operations is that `<<` happens first followed by the `&`.
+`hc595_shift()` is responsible for shifting the various bits of the input number, `dat`, into the input shift register. With the exception that the input number is variable based on what the value of `dat` is, the function is implemented exactly like `zeroClr()` above. In fact, both `zeroClr()` and `writeAllOnes()` can, and probably should have been, implemented using `hc595_shift()`. 
+
+For those that might have trouble imagining how the `<<` works in conjuction with the `&` operator, like I did, here's a short example using `0x3f` or `0011 1111` as an example. Note that the order of precedence of the operations is that `<<` happens first followed by the `&`.
 
 `i` | `dat` after shift | `dat & 0x80` | result written to the SDI pin
 -- |-- | -- | --
@@ -273,7 +289,7 @@ The last entry, `i = 8`,  is what would happen if `dat` was shifted 9 times inst
 
 {{< gist youngkin ba2fdb83fa9819be02fb8237aa299fd1 >}}
 
-All of the functions in the above code snippet merely setup the test by setting the display to `8`, and then delegate the behavior to the functions that we saw implemented above (e.g., `shiftRegCLr()`.
+Most of the functions in the above code snippet merely setup the test by setting the display to `8`, and then delegate the behavior to the functions that we saw implemented above (e.g., `shiftRegCLr()`. Instead of merely displaying an `8`, `testWriteNum()` will rotate through all the heximdecimal numbers and decimal point.
 
 {{< gist youngkin dc409c1a8995949b09f51baccdf81752 >}}
 
@@ -289,7 +305,7 @@ Lines 17 through 25 first read the terminal input from the user and populate a n
 
 Line 26 frees the memory allocated by `getline()` on line 19. This is necessary to avoid memory leaks. Don't worry if you don't understand this. It's not important to what's being demonstrated in this program. If you're interested, investigate memory allocation in C including how memory is allocated (`malloc`), how it's freed (`free`), why this is important, and finally the operation of the `getline()` function. Otherwise just remember it's required. 
 
-> _ASIDE: strictly speaking it's not actually required in this program as the resulting memory leak is likely to be trivial in normal use. At a minimum bad form to not `free` all allocated memory when it's no longer needed. At worst, the program can fail in various ways once all available memory has been allocated. So, call `free` when the memory associated with a variable like `'line` is no longer needed._
+> _ASIDE: strictly speaking it's not actually required in this program as the resulting memory leak is likely to be trivial in normal use. At a minimum it's bad form to not `free` all allocated memory when it's no longer needed. At worst, the program can fail in various ways once all available memory has been allocated. So, call `free` when the memory associated with a variable like `line` is no longer needed._
 
 > [Wikipedia](https://en.wikipedia.org/wiki/C_dynamic_memory_allocation) has a very detailed discussion about memory allocation and management.
 
@@ -299,13 +315,61 @@ Lines 63 through 67 register the signal handler that will gracefully exit the pr
 
 ### Shift Register/7-Segment Display in Go
 
-__TODO__ If you look very closely at the 2 diagrams you'll notice they're slightly different. In the Sunfounder wiring diagram the OE and SRCLR are wired to ground and the positive power bus. This is because the Sunfounder project doesn't block the output register nor does it clear the input register. In the actual wiring diagram below the OE pin is connected to GPIO pin 20 and the SRCLR pin is connected to GPIO pin 19. THe code provided with this version of the Sunfounder project does use the OE and SRCLR pins. You can wire up the breadboard in either fashion. If you choose the Sunfounder wiring the capability of this project to control the OE and SRCLR pins won't be available. More accurately, it won't have an effect.
+The Go program is very similar to the C version. There are some minor differences in the implementation and the runtime output. Some of these differences are due to structural differences between the languages as well as differences in coding conventions. The snippets below represent most, but not all of the program. I left out some of the boiler plate and whitespace. 
 
+{{< gist youngkin 372686065e31b4fcc896de3398e3a80a >}}
 
+There are 4 major parts to this snippet. The first is the definition of the `segcode` variable on line 3. It serves the same purpose as `SegCode` in the C program, namely defining the values to be left-shifted into the shift register. One thing of note is that, as with the C version, these values are dependent on the use of Most Significant Bit shifting (MSB). For convenience, here's the explanatory text from the C version:
+
+> `SegCode` ... contains the hexidecimal numbers that should be shifted into the shift register in order to display a number that matches the index of a particular number in the array. For example, to display an 8 `SegCode[8]` should be used. Note that these numbers reflect the use of the MSB form of shifting. The numbers would be different if the LSB shifting form were used. For example, the number to use to display 0, as shown on line 32, is `0x3F` (`0011 1111`). To display 0 using the LSB method the hex number `0xFC`(`1111 1100`) and the C right-shift operator, `>>`, should be used.
+
+Second, lines 7-13, in `main()`, initialize the go-rpio library.
+
+Third, lines 15-20, create the go-rpio required `rpio.Pin` objects that are manipulated by the rest of the program.
+
+Finally, lines 22-35, define a signal/interrupt handler to catch `ctl-C` inputs from the terminal. This is needed to gracefully exit the program if the user enters `ctl-C` at the keyboard. A key point to notice in this snippet is the use of the channel named `stop`. The signal/interrupt handler runs in its own goroutine (line 35). At this point there are 2 goroutines running, the `main()` goroutine and the goroutine associated with the signal/interrupt handler. They are run and scheduled independently and as a result control can shift from one goroutine to another in arbitrary and unpredictable ways. In order to gracefully shutdown the program they must both be stopped in a controlled manner. Otherwise exiting the program would result in unpredictable behavior. For example, at program exit the 7-segment display might still have some illuminated LEDs. Synchronizing program exit using the `stop` channel prevents this from happening. See the Tour of Go lessons on [Goroutines](https://tour.golang.org/concurrency/1) and [Channels](https://tour.golang.org/concurrency/2) for a quick introduction to goroutines and channels. Don't worry if you don't quite understand all this, concurrency in Go is an advanced topic. Mostly I just wanted to provide a high level explanation of why the code is written this way.
+
+The program comments provide additional detail. The rest of `main()` is in the following snippet.
+
+{{< gist youngkin 84ed027cd69b1682444466703b2c699a >}}
+
+The rest of `main()` as shown above handles prompting the user about what capability they'd like to see demonstrated is fairly self-explanatory. One thing to point out though is the `for/select` loop starting in lines 2-8. `for/select` is a common pattern used in Go programs. It's use here goes back to the the prior discussion about the `stop` channel. The `select` part of the `for/select` pattern is listening on the `stop` for the message indicating this goroutine should exit. Notice the `select` had 2 `case` choices. The first is for listening to the `stop` channel. If no message is received then control will immediately pass to the `default` case, continuing with normal program flow. In the `default` case the user is prompted, in lines 18-57, for their choice which will result in one of the test functions being called.
+
+{{< gist youngkin 61200f26ffe1211c8b09efb87a6b82d8 >}}
+
+There are 3 parts to this next code snippet. The first is the creation of the go-rpio `rpio.Pin` objects that represent the logical connection to the shift register's physical pins. The GPIO/BCM pins 17, 18, 27, 19, and 21 are used for the SDI, RCLK, SRCLK, SRCLR, and OE pins respectively.
+
+The second part sets the pins to OUTPUT mode so that they can be written to. 
+
+The final part sets the voltage on the pins to their initial values. Note the the SRCLR pin is set to HIGH. This is required in order for the shift register to work. In later code snippets we'll see that clearing the input shift register is accomplished by setting the SRCLR pin to LOW to clear the input shift register, and then back to HIGH to reenable the normal operation of the shift register.
+
+{{< gist youngkin 7898d5147333eefb86a45494c5e7e189 >}}
+
+This code snippet shows the implementation of the test functions that are called in response to users' choices regarding what capability they'd like to see demonstrated.
+
+{{< gist youngkin d81ec6100f22e48b25ab536ce115fe56 >}}
+
+This code snippet shows the implementation of the function that's the heart of the program, `hc595_shift()`, which does the actual writing to the input shift register. The comments provide a good detailed explanation of what the function does.
+
+{{< gist youngkin 4fa966a3ff8ed3e550feca78bab2baa3 >}}
+
+This final code snippet shows the implementation of 2 helper functions and the signal/interrupt handler. The first helper function, `writeNums()`, writes the actual data needed to illuminate the hexidecimal numbers on the 7-segment display. The second, `shiftRegClr()`, shows how to use the combination of the SRCLR and RCLK pins to clear the shift register ultimately clearing the 7-segment display. Note that, as described above, the SRCLR pin needs to be set back to HIGH in order to reenable the shift register.
+
+In `shiftRegClr`, lines 1 through 11, note the use of the RCLK pin on lines 4 and 6. The clock signal to that pin must be pulsed, i.e., set to HIGH followed by LOW, in order to make the input shift register contents available to the output register. Also note that the SRCLR pin needs to be reset to HIGH after the operation to reenable the shift register.
+
+Finally, the `signalHandler()` function catches the signal from the OS (line 23) via the `sigs` channel. Then (line 25) it closes the stop channel. A side effect of closing a channel is a notification is sent to all listeners on the other end of the channel. This is a common pattern in Go. Finally it clears the shift register, releases go-rpio resources (line 30), and exits the program.
 
 ## Summary
 
-__TODO__
+This article has covered quite a bit of ground. If you've been following my series starting with the [Raspberry Pi GPIO in Go and C - Blinking LED](http://10.0.0.223:1313/post/sunfoundergpionotesled/) project, you're already familiar with using GPIO to drive LEDs. You might agree that the [Sunfounder 7-Segment Display](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.4_7-segment_display_c.html) project didn't really add to your knowledge of GPIO and LEDs that hasn't already been covered in previous projects. So this is why, for me anyway, this project is really about learning shift register fundamentals and using them in a non-trivial way.
+
+This article covered several interesting things:
+
+1. It demonstrated wiring up a relatively complex circuit on a breadboard. As I did, you might have made some mistakes along the way that gave you some useful knowledge of how to debug circuits.
+2. Through an academic discussion and hands-on practice you've learned quite a bit about shift registers and what they can be used for.
+3. Despite my somewhat trivializing the use of LEDs in this project, this project did shed light on how to use LEDs in a more realistic manner. Controlling an individual LED is interesting, but being able to control an array of LEDs in parallel and display digits on that array is a big step forward. You also learned that there are 2 types of 7-segment displays, common anode and common cathode.
+
+Please feel free to comment on, or ask questions about, any aspect of this article.
 
 ## References
 
