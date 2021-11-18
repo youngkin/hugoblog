@@ -315,7 +315,7 @@ Lines 63 through 67 register the signal handler that will gracefully exit the pr
 
 ### Shift Register/7-Segment Display in Go
 
-The Go program is very similar to the C version. There are some minor differences in the implementation and the runtime output. Some of these differences are due to structural differences between the languages as well as differences in coding conventions. The snippets below represent most, but not all of the program. I left out some of the boiler plate and whitespace. 
+The Go program is very similar to the C version. There are some minor differences in the implementation and the runtime output. Some of these differences are due to structural differences between the languages as well as differences in coding conventions. The snippets below represent most, but not all of the program. I left out some of the boiler plate and whitespace.
 
 {{< gist youngkin 372686065e31b4fcc896de3398e3a80a >}}
 
