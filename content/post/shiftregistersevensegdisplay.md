@@ -321,7 +321,7 @@ The Go program is very similar to the C version. There are some minor difference
 
 There are 4 major parts to this snippet. The first is the definition of the `segcode` variable on line 3. It serves the same purpose as `SegCode` in the C program, namely defining the values to be left-shifted into the shift register. One thing of note is that, as with the C version, these values are dependent on the use of Most Significant Bit shifting (MSB). For convenience, here's the explanatory text from the C version:
 
-> `SegCode` ... contains the hexidecimal numbers that should be shifted into the shift register in order to display a number that matches the index of a particular number in the array. For example, to display an 8 `SegCode[8]` should be used. Note that these numbers reflect the use of the MSB form of shifting. The numbers would be different if the LSB shifting form were used. For example, the number to use to display 0, as shown on line 32, is `0x3F` (`0011 1111`). To display 0 using the LSB method the hex number `0xFC`(`1111 1100`) and the C right-shift operator, `>>`, should be used.
+> `SegCode` ... contains the hexadecimal numbers that should be shifted into the shift register in order to display a number that matches the index of a particular number in the array. For example, to display an 8 `SegCode[8]` should be used. Note that these numbers reflect the use of the MSB form of shifting. The numbers would be different if the LSB shifting form were used. For example, the number to use to display 0, as shown on line 32, is `0x3F` (`0011 1111`). To display 0 using the LSB method the hex number `0xFC`(`1111 1100`) and the C right-shift operator, `>>`, should be used.
 
 Second, lines 7-13, in `main()`, initialize the go-rpio library.
 
