@@ -1,7 +1,7 @@
 ---
 title: "Raspberry Pi GPIO in Go and C - Using a Shift Register & 7 Segment Display"
-description: "Why use a shift register and how to use it with a 7 segment display"
-date: 2021-11-18T13:13:42-06:00
+description: "What are shift registers & 7-Segment LEDs and how to program them on a Raspberry Pi using C & Golang"
+date: 2021-11-19T13:13:42-06:00
 draft: false
 image: "images/sevensegdisplay/header3.png"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]
@@ -156,7 +156,7 @@ The diagram at above left shows the pinouts for a SN74HC595 shift register. The 
 * __Pins 1-7__, Qb-Qh, are the remaining output pins. Notice that there are 8 output pins (including Qa above). Having 8 outputs makes this an 8-bit shift register. Qb-Qh are also known as Q1-Q7.
 * __Pin 8__, GND is the ground pin.
 * __Pin 16__, Vcc, is the power-in pin.
-* __Pin 14__, SER, is the serial input pin. This is the pin that takes the incoming serial data pulses. This is sometimes referred to as DS, SI, or SDI.
+* __Pin 14__, SER, is the serial input pin. This is the pin that takes the incoming serial data pulses from the Raspberry Pi. This is sometimes referred to as DS, SI, or SDI.
 * __Pin 11__, SRCLK, is the pin that accepts the synchronization signal that indicates 1 bit of data has been transmitted to the SER pin. This type of signal is called a clock. SRCLK stands for shift register clock. SRCLK is also known as sh_cp.
 * __Pin 12__, RCLK, is the pin that accepts the synchronization signal that indicates all 8 shift register bits have been populated and it's time to transfer the bits, in parallel, to the output/storage register and thereby to the device connected to the output pins, Qa-Qh. RCLK is also known as st_cp or latch.
 * __Pin 10__, SRCLR, is used to clear the current values of the shift register. SRCLR stands for shift register clear. SRCLR is also known as MR. If clearing the shift register is not required it can be connected to the power source which generates a HIGH signal (or 1). To clear the shift register the SRCLR pin is set to LOW (or 0). It must be set back to HIGH before the shift register is functional again.
@@ -179,7 +179,7 @@ As stated above, input data is stored in the input shift register. Data is trans
  Qc  | - | -  | -  | -  | 0
  Qd  | - | -  | -  | -  | 1
 
- Notice that in the output sequence of bits, if the output bits are read from Qa to Qd, the bit sequence is reversed. That is, `1101` vs. the input sequence of `1011`. This manner of shifting is called Most Significant Bit (MSB) shifting. It starts with the leftmost bit as in this example. This must be kept in mind or unexpected results may occur. It is possible to shift in a more intuitive way, Least Significant Bit (LSB). To do this the shifting must start with the least, or rightmost, input bit. In C, MSB shifting is done using the `<<` shift operator. LSB shifting is done by using the `>>` shift operator. The impact of shift method will become more obvious when we get to how the shift register (not the input shift register) is used in conjunction with the 7-segment display. [See Wikipedia for more about MSB and LSB](https://en.wikipedia.org/wiki/Bit_numbering).
+ Notice that in the output sequence of bits, if the output bits are read from Qa to Qd, the bit sequence is reversed. That is, `1101` vs. the input sequence of `1011`. This manner of shifting is called Most Significant Bit (MSB) shifting. It starts with the leftmost bit as in this example. This must be kept in mind or unexpected results may occur. It is possible to shift in a more intuitive way, Least Significant Bit (LSB). To do this the shifting must start with the least, or rightmost, input bit. In C and Go, MSB shifting is done using the `<<` shift operator. LSB shifting is done by using the `>>` shift operator. The impact of shift method will become more obvious when we get to how the shift register (not the input shift register) is used in conjunction with the 7-segment display. [See Wikipedia for more about MSB and LSB](https://en.wikipedia.org/wiki/Bit_numbering).
 
 As noted previously, I simplified things a little bit when I stated above that only one Raspberry Pi GPIO pin is needed to drive the 8 LED segments in the 7-segment display. The one pin I identified is used for the SER (serial data in) pin. A minimum of 2 more are needed; 1 for the SRCLK pin and the other for the RCLK pins. As shown above these are required to advance the clock on the input shift register and transfer data from the input shift register to the output register respectively. So that's now 3 pins to drive the 8 LEDs on the 7-segment display. This is still a good tradeoff. But 2 more GPIO pins are needed if the SRCLR and OE pins are needed. So now that's 5 GPIO pins to drive 8 LED segments. Still a net gain of 3 pins. However, the savings become even greater when shift registers are daisy-chained as discussed above. Without requiring additional GPIO pins it is possible to control 16 or even more LEDs from those 5 GPIO pins. The savings become more significant as more devices, e.g., LEDs, need to be controlled.
 
@@ -235,10 +235,10 @@ Most of this is pretty well explained by the embedded comments, but I'll mention
 
 Lines 12 and 13 provide information on how to build and run the program.
 
-Lines 27 and 28 define the GPIO pins that drive the SRCLR and OE pins respectively. Note that the GPIO pin numbers are the [WiringPi](https://github.com/WiringPi/WiringPi) pin numbers. If you decide you want to see this behavior in action, wire pin 24 to the SRCLR shift register pin, and wire pin 29 to the OE shift register pin instead of positive and ground respectively.
-
 <img style="border:1px solid black" src="/images/sevensegdisplay/74hc595shiftregister.png" align="center" width="300" /> 
 <figcaption align="left"><center><i style="color:black;"><a href=https://www.ti.com/lit/ds/symlink/cd74hc595.pdf?ts=1636840974607&ref_url=https%253A%252F%252Fwww.google.com%252F">Image Credit: Texas Instruments</a></i></center></figcaption>
+
+Lines 27 and 28 define the GPIO pins that drive the SRCLR and OE pins respectively. Note that the GPIO pin numbers are the [WiringPi](https://github.com/WiringPi/WiringPi) pin numbers. If you decide you want to see this behavior in action, wire pin 24 to the SRCLR shift register pin, and wire pin 29 to the OE shift register pin instead of positive and ground respectively.
 
 Lines 32 and 33 define an array, `SegCode`, that contains the hexadecimal numbers that will be shifted into the shift register in order to display a number that matches the index of a particular number in the array. For example, to display an 8 `SegCode[8]` should be used. Note that these numbers reflect the use of the MSB form of shifting. The numbers would be different if the LSB shifting form were used. For example, the number to use to display 0, as shown on line 32, is `0x3F` (`0011 1111`). To display 0 using the LSB method the hex number `0xFC`(`1111 1100`) and the C right-shift operator, `>>`, should be used.
 
@@ -246,7 +246,7 @@ Lines 32 and 33 define an array, `SegCode`, that contains the hexadecimal number
 
 This next code snippet shows the initialization of the shift register. In a nutshell, all the pins we're using are placed in OUTPUT mode so we can write to them. Next, all pins except for the SRCLR pin are set to LOW (0). Recall that the SRCLR pin must be set to HIGH for the shift register to be operational.
 
-> The alternative to pin mode OUTPUT is PWM. Since PWM simulates lower voltages by rapidly pulsing the associated pin it's not suitable for use with shift registers. Recall that a pulse to the SRCLK and RCLK pins represents a clock advancing. Using PWM, and the resulting rapid pulsing, would interfere with the clocks advancing in a reliable manner.
+> The alternative to pin mode OUTPUT is PWM (Pulse Width Modulation). Since PWM simulates lower voltages by rapidly pulsing the associated pin it's not suitable for use with shift registers. Recall that a pulse to the SRCLK and RCLK pins represents a clock advancing. Using PWM, and the resulting rapid pulsing, would interfere with the clocks advancing in a reliable manner.
 
 {{< gist youngkin 332b51486edd22771dda7bac8f88ae62 >}}
 
@@ -289,7 +289,7 @@ The last entry, `i = 8`,  is what would happen if `dat` was shifted 9 times inst
 
 {{< gist youngkin ba2fdb83fa9819be02fb8237aa299fd1 >}}
 
-Most of the functions in the above code snippet merely setup the test by setting the display to `8`, and then delegate the behavior to the functions that we saw implemented above (e.g., `shiftRegCLr()`. Instead of merely displaying an `8`, `testWriteNum()` will rotate through all the hexadecimal numbers and decimal point.
+Most of the functions in the above code snippet merely setup the test by setting the display to `8`, and then delegate the behavior to the functions that we saw implemented above (e.g., `shiftRegCLr()`). Instead of merely displaying an `8`, `testWriteNum()` will rotate through all the hexadecimal numbers and decimal point.
 
 {{< gist youngkin dc409c1a8995949b09f51baccdf81752 >}}
 
@@ -323,9 +323,9 @@ There are 4 major parts to this snippet. The first is the definition of the `seg
 
 > `SegCode` ... contains the hexadecimal numbers that should be shifted into the shift register in order to display a number that matches the index of a particular number in the array. For example, to display an 8 `SegCode[8]` should be used. Note that these numbers reflect the use of the MSB form of shifting. The numbers would be different if the LSB shifting form were used. For example, the number to use to display 0, as shown on line 32, is `0x3F` (`0011 1111`). To display 0 using the LSB method the hex number `0xFC`(`1111 1100`) and the C right-shift operator, `>>`, should be used.
 
-Second, lines 7-13, in `main()`, initialize the go-rpio library.
+Second, lines 7-13, in `main()`, initialize the go-rpio library. Line 13 guarantees that the resources held by the go-rpio library will be released on program termination.
 
-Third, lines 15-20, create the go-rpio required `rpio.Pin` objects that are manipulated by the rest of the program.
+Third, lines 15-20, create the go-rpio `rpio.Pin` objects that are manipulated by the rest of the program.
 
 Finally, lines 22-35, define a signal/interrupt handler to catch `ctl-C` inputs from the terminal. This is needed to gracefully exit the program if the user enters `ctl-C` at the keyboard. A key point to notice in this snippet is the use of the channel named `stop`. The signal/interrupt handler runs in its own goroutine (line 35). At this point there are 2 goroutines running, the `main()` goroutine and the goroutine associated with the signal/interrupt handler. They are run and scheduled independently and as a result control can shift from one goroutine to another in arbitrary and unpredictable ways. In order to gracefully shutdown the program they must both be stopped in a controlled manner. Otherwise exiting the program would result in unpredictable behavior. For example, at program exit the 7-segment display might still have some illuminated LEDs. Synchronizing program exit using the `stop` channel prevents this from happening. See the Tour of Go lessons on [Goroutines](https://tour.golang.org/concurrency/1) and [Channels](https://tour.golang.org/concurrency/2) for a quick introduction to goroutines and channels. Don't worry if you don't quite understand all this, concurrency in Go is an advanced topic. Mostly I just wanted to provide a high level explanation of why the code is written this way.
 
@@ -333,7 +333,7 @@ The program comments provide additional detail. The rest of `main()` is in the f
 
 {{< gist youngkin 84ed027cd69b1682444466703b2c699a >}}
 
-The rest of `main()` as shown above handles prompting the user about what capability they'd like to see demonstrated is fairly self-explanatory. One thing to point out though is the `for/select` loop starting in lines 2-8. `for/select` is a common pattern used in Go programs. It's use here goes back to the the prior discussion about the `stop` channel. The `select` part of the `for/select` pattern is listening on the `stop` for the message indicating this goroutine should exit. Notice the `select` had 2 `case` choices. The first is for listening to the `stop` channel. If no message is received then control will immediately pass to the `default` case, continuing with normal program flow. In the `default` case the user is prompted, in lines 18-57, for their choice which will result in one of the test functions being called.
+The rest of `main()` as shown above handles prompting the user about what capability they'd like to see demonstrated is fairly self-explanatory. One thing to point out though is the `for/select` loop starting in lines 2-8. `for/select` is a common pattern used in Go programs. It's use here goes back to the the prior discussion about the `stop` channel. The `select` part of the `for/select` pattern is listening on the `stop` for the message indicating this goroutine should exit. Notice the `select` had 2 `case` choices. The first is for listening to the `stop` channel. If a message is received the `for` loop, and program, will exit. If no message is received then control will immediately pass to the `default` case, continuing with normal program flow. In the `default` case the user is prompted, in lines 18-57, for their choice which will result in one of the test functions being called.
 
 {{< gist youngkin 61200f26ffe1211c8b09efb87a6b82d8 >}}
 
@@ -355,9 +355,9 @@ This code snippet shows the implementation of the function that's the heart of t
 
 This final code snippet shows the implementation of 2 helper functions and the signal/interrupt handler. The first helper function, `writeNums()`, writes the actual data needed to illuminate the hexadecimal numbers on the 7-segment display. The second, `shiftRegClr()`, shows how to use the combination of the SRCLR and RCLK pins to clear the shift register ultimately clearing the 7-segment display. Note that, as described above, the SRCLR pin needs to be set back to HIGH in order to reenable the shift register.
 
-In `shiftRegClr`, lines 1 through 11, note the use of the RCLK pin on lines 4 and 6. The clock signal to that pin must be pulsed, i.e., set to HIGH followed by LOW, in order to make the input shift register contents available to the output register. Also note that the SRCLR pin needs to be reset to HIGH after the operation to reenable the shift register.
+In `shiftRegClr`, lines 12 through 18, note the use of the RCLK pin on lines 14 and 16. The clock signal to that pin must be pulsed, i.e., set to HIGH followed by LOW, in order to make the input shift register contents available to the output register. Also note that the SRCLR pin needs to be reset to HIGH after the operation to reenable the shift register.
 
-Finally, the `signalHandler()` function catches the signal from the OS (line 23) via the `sigs` channel. Then (line 25) it closes the stop channel. A side effect of closing a channel is a notification is sent to all listeners on the other end of the channel. This is a common pattern in Go. Finally it clears the shift register, releases go-rpio resources (line 30), and exits the program.
+Finally, the `signalHandler()` function catches the signal from the OS (line 23) via the `sigs` channel. Then on (line 25) it closes the stop channel. A side effect of closing a channel is a notification is sent to all listeners on the other end of the channel. This is a common pattern in Go. Finally it clears the shift register, releases go-rpio resources (line 28). Line 30 releases the resources held by the go-rpio library. Finally, the program exits on line 32.
 
 ## Summary
 
@@ -369,7 +369,7 @@ This article covered several interesting things:
 2. Through an academic discussion and hands-on practice you've learned quite a bit about shift registers and what they can be used for.
 3. Despite my somewhat trivializing the use of LEDs in this project, this project did shed light on how to use LEDs in a more realistic manner. Controlling an individual LED is interesting, but being able to control an array of LEDs in parallel and display digits on that array is a big step forward. You also learned that there are 2 types of 7-segment displays, common anode and common cathode.
 
-Please feel free to comment on, or ask questions about, any aspect of this article.
+Comments and questions about this article are welcome.
 
 ## References
 
