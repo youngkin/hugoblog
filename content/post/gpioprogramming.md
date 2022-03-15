@@ -40,24 +40,13 @@ You will need some basic C programming knowledge as well as familiarity with log
 
 ## An introduction to the BCM2835 ARM Peripherals
 
-This section provides an overview of the BCM 2835 peripherals. It starts with an overview of BCM2835 addressing. Understanding addressing is fundamental to understanding the rest of the article. It then moves to an overview of the capabilites of the various peripherals. It concludes with a more detailed discussion about how registers are used to access the peripherals and their associated I/O functions.
+This section provides an overview of the BCM 2835 peripherals. It starts with an overview overview of the capabilites of the various peripherals. It then moves to an overview of BCM2835 addressing. Understanding addressing is fundamental to understanding the rest of the article. It concludes with a more detailed discussion about how registers are used to access the peripherals and their associated I/O functions.
 
 This is not an exhaustive description of the BCM2835 board. The only capability that will be covered in any detail, and is the focus of this article, is interacting with the GPIO I/O functions, namely defining the function of a pin and setting and clearing the value of the pin (e.g., setting it to HIGH and LOW), specifically programming the the BCM2835 GPIO to blink an LED.
 
+There are multiple pin numbering schemes. The Raspberry Pi has physical pin numbers, i.e., the numbers on the Pi board. BCM2835 has a numbering scheme called GPIO numbering. It is different than, and incompatible with, the Pi's physical numbering scheme. Finally some libraries such as the C WiringPi library have their own numbering schemes which are incompatible with the Pi and BCM2835 schemes. This article uses the BCM2835 numbering scheme exclusively. There is a good [pin out diagram](https://pinout.xyz) available that maps between these 3 numbering schemes. Where a pin supports a particular I/O function, as described below, that is also called out on this pin out diagram.
+
 A quick note on terminology... The term "peripherals" is used in the title and in some parts of this article. To me the term peripherals is something of a misnomer. At its most basic the GPIO capability of the BCM2835 is made available through a set of physical pins on the device. Some of these pins provide power and ground needed to drive external devices like LEDs, sensors, and motors. Other pins can be controlled programatically to take input from, or output to, these external devices. At a higher level, subsets of the GPIO pins provide support for complete protocols that implement more sophisticated functions like controlling the speed and direction of a motor and controlling LED displays that display text like those in highway signs. These basic and more sophisticated capabilities are controlled by setting the function of a pin. Input and output are 2 functions that can be set. There are a variety of others that will be covered in the __I/O Functions__ section below. I titled that section __I/O Functions__ because I think that more accurately describes the concept than the term "peripherals" does. To me "peripherals" are the external devices. Setting the function of a pin describes how the BCM2835 interacts with a device or peripheral.
-
-### Addressing
-
-The BCM2835 provides access to a variety of peripherals via the GPIO pins. These peripherals include basic access to the GPIO pins which can be controlled by setting their state to HIGH (1) or LOW (0). A pin's state, coupled with power input from one of the power pins, is used to control any devices connected to that pin or pins. Other peripherals support more advanced capabilities of the BCM2835. These are described in more detail below.
-
-All GPIO peripherals are accessed via registers. These registers are located at various offsets in the on-board memory. Accessing the registers requires a knowledge of how addressing works on the BCM2835 board was well as on the Raspberry Pi. Here's a diagram from the [BCM2835 datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf), section 1.2.1, showing how memory is mapped from the Pi's physical address to the BCM2835 addresses.
-
-<img style="border:1px solid black" src="/images/bcm2835programming/BCM2835Addressing.jpg" align="center" width="1000" height="500"/>
-<figcaption align="left"><center><i style="color:black;">BCM2835 Addressing</i></center></figcaption>
-
-The Raspberry Pi maps the BCM2835 memory to the Pi's physical address of 0x20000000. This is shown in the middle column labeled "ARM Physical Addresses". The gray shaded area labeled I/0 peripherals is the Pi's physical memory location of the BCM2835's peripherals (e.g., GPIO pins). Moving towards the left you'll see a gold box labeled "VC/ARM MMU". This is the [Memory Management Unit](https://en.wikipedia.org/wiki/Memory_management_unit) that is responsible for mapping the Pi's physical memory to the BCM2835 memory. Following the line from the middle column's "I/O Peripherals" partition, through the VC/ARM MMU, to the far left column titled "VC CPU Bus Addresses" leads to the "I/O Peripherals partition on the BCM2835's CPU address bus. It's address is 0x7E000000.
-
-The I/O peripheral addresses can be made available to the application through one of 2 ways. The traditional way is via the `/dev/mem` device mounted on the file system. Accessing this device requires root privileges. A newer method became available starting with the Raspberry Pi 2. This method accesses the I/O peripheral addresses via `/dev/gpio`. An advantage of using this method is that it doesn't require root access. A disadvantage to using this method is that only the GPIO capability of the BCM2835 can be accessed. This means advanced capabilities like PWM and SPI are not available. Accessing the I/O peripherals using `/dev/mem` requires a little more work, namely mapping the physical memory from `/dev/mem` to the application's virtual memory. This will be covered in more detail later.
 
 ### I/O Functions
 
@@ -68,6 +57,7 @@ The main I/O functions supported by the BCM2835 are:
   * GPIO
   * SPI
   * PWM
+  * AUX
   * BSC
   * DMA
   * External Mass Media Controller
@@ -76,11 +66,11 @@ The main I/O functions supported by the BCM2835 are:
   * System Timer
   * UART
 
-This section will focus on the first 3, GPIO, SPI, and PWM. These will provide enough context in order to get a basic understanding of the kinds of things the BCM2835 is capable of.
+As I have direct experience with the first 3 I/O functions, GPIO, SPI, and PWM, this section will focus on these. This will provide enough context in order to get a basic understanding of the kinds of things the BCM2835 is capable of as well as leveraging the information in the Addressing and Registers sections below in order to learn about and use the remaining I/O functions.
 
 #### GPIO
 
-In the BCM2835 datasheet the term GPIO refers to the lowest level of control of a physical pin. This is what's used to control the function of a pin, such as setting it as an input or output pin. It's also used to set or get the value of a pin. Values are conceptually referred to as HIGH and LOW, but they are represented by voltage, or lack thereof, passing across the pin. There are other types of settings for pins. One of these settings is used to control whether to detect a state change on the rising or falling edge of a pin's voltage. Another setting controls what are called pull-up/pull-down resistors attached to each pin. These resistors are used to explicitly control the value of a pin, 1 or 0, when a pin's voltage is in an indeterminate state. [This tutorial](https://www.electronics-tutorials.ws/logic/pull-up-resistor.html) has a reasonably good explanation for why pull-up and pull-down resistors are needed.
+GPIO stands for General Purpose Input Output. In the BCM2835 datasheet the term GPIO refers to the most general, or basic, level of control of a physical pin. This is what's used to control the function of a pin, such as setting it as an input or output pin. It's also used to set or get the value of a pin. Values are conceptually referred to as HIGH and LOW, but they are represented by voltage, or lack thereof, passing across the pin. There are other types of settings for pins. One of these settings is used to control whether to detect a state change on the rising or falling edge of a pin's voltage change. Another setting controls what are called pull-up/pull-down resistors attached to each pin. These resistors are used to explicitly control the value of a pin, 1 or 0, when a pin's voltage is in an indeterminate state. [This tutorial](https://www.electronics-tutorials.ws/logic/pull-up-resistor.html) has a reasonably good explanation for why pull-up and pull-down resistors are needed.
 
 The code associated with this article causes and LED to blink. Accomplishing this involves the following steps:
 
@@ -94,19 +84,65 @@ Accomplishing this uses the GPIO function. More accurately it uses the GPIO "fun
 
 #### SPI (Serial Peripheral Interface)
 
-SPI is used to send data serially to a device that requires data in parallel. This is helpful because a relatively large set of parallel inputs can be written to using just 3 GPIO pins. If SPI wasn't used, one GPIO pin would be required for each parallel input. This could easily be prohibitive since pins are a limited resource. SPI can be used to control matrixed LED or LCD displays to display characters or images, take input from touchscreens, and interact with various sensors.
+SPI is used to send data serially to a peripheral that can accept or requires data in parallel. This is helpful because a relatively large set of parallel inputs can be written to using just 3 GPIO pins. If SPI wasn't used, one GPIO pin would be required for each parallel input. This could easily be prohibitive since pins are a limited resource.
+
+<img style="border:1px solid black" src="/images/sevensegdisplay/7segmentdisplaypinout.png" align="center" width="200" height="100"/>
+<figcaption align="left"><center><i style="color:black;">Image credit: Circuit Basics</i></center></figcaption>
+
+The diagram above shows a 7 segment display that is commonly used to display display numeric characters in peripherals like calculators and clocks. It has 8 input lines and 2 ground lines. Controlling this directly using GPIO would use 8 of the 40 GPIO pins. Controlling 6 of these displays would take all 48 GPIO pins, but there are only 40. Clearly the approach to using GPIO to control this peripheral isn't practical. Enter a device called a shift register. Shift registers can control 8 input lines of a connected peripheral. It uses 5 GPIO pins, 3 for input and 2 for control. To control multiple peripherals it's possible to daisy-chain shift registers without requiring additional GPIO pins. Taking our previous example of 6 7 segment displays, using a shift register requires 5 GPIO pins vs. the 48 that would be required by directly using GPIO pins. If you're interested in learning more about shift registers see my article [Raspberry Pi GPIO in Go and C - Using a Shift Register & 7 Segment Display](http://youngkin.github.io/post/shiftregistersevensegdisplay/).
+
+The SPI interface requires at least 4 GPIO pins. One of the pins, MOSI, sends data to a peripheral. MOSI stands for Master Out Slave In. The second pin, MISO (Master In Slave Out) accepts input. 
+
+ > I reluctantly use the terms "master" and "slave". However these terms are used in all of the documents I've read on SPI. I'll continue to use them in order to avoid confusion.
+
+ The 3rd pin is a clock which controls the data transmission between the master and slave. The 4th pin is called the chip select (CS) or chip enable (CE) pin. It is used to prepare the slave device to interface with the BCM2835. An additional slave device can be accessed by using a 5th pin, the second CE/CS pin. The 2 CE/CS pins are used to enable each of the slave devices, but only one device can be enabled at a time. 
+
+The primary SPI interface, SPIO, is implemented on GPIO pins 7-11. Pins 7 & 8 are the 2 CE/CS pins available on the BCM2835. Pin 9 is MISO, 10 is MOSI, and 11 is the clock (SCLK). The BCM2835 has 2 auxilary SPI interfaces, SPI1 and SPI2. From the BCM2835 datasheet it looks like SPI1 is available on pins 16-21 and SPI0 on pins 35-39. These auxilary interfaces are available via the AUX I/O function.
+
+SPI can be used to control a variety of peripherals including matrixed LED or LCD displays to display characters or images, take input from touchscreens, and interact with various sensors. [Wikipedia has a good article](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface) describing SPI in more detail.
+
+I have an upcoming article devoted to SPI. I'll update this document adding a reference when it becomes available.
 
 #### PWM
 
+PWM stands for Pulse Width Modulation. It is used to convert a digital signal, like that produced by the BCM2835, into a simulated analog signal. It is simulated in the sense that it's not a true analog signal. It's still a digital signal but it cycles so fast it appears to be an analog signal. Many peripherals like electric motors, dimmable LEDs, and color LEDs require an analog signal. As with SPI there are dedicated pins that can be enabled to utilize the PWM I/O function. These are GPIO pins 12, 13, 18, and 19. With these pins the BCM2835 supports something called hardware PWM. The PWM functionality is embedded into the BCM2835. It implements a hardware based clock loop that controls the frequency of the simulated analog signal. It is possible to use other GPIO pins for PWM, this is called software PWM. However, in software PWM the clock loop is written in the code that runs on the Raspberry Pi CPU. Since that CPU is doing many other things it isn't possible to create a reliable clock signal. This can result in some undesirable side effects such as a flickering LED in place of a dim LED. See my article [Raspberry Pi GPIO in Go and C - RGB LED](https://youngkin.github.io/post/sunfoundergpionotesrgbled/) for more information about PWM as well as examples of PWM in use.
+
+### Addressing
+
+All GPIO I/O functions are accessed via registers. These registers are located at various offsets in the on-board memory. Accessing the registers requires a knowledge of how addressing works on the BCM2835 board was well as on the Raspberry Pi. Here's a diagram from the [BCM2835 datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf), section 1.2.1, showing how memory is mapped from the Pi's physical address to the BCM2835 addresses.
+
+<img style="border:1px solid black" src="/images/bcm2835programming/BCM2835Addressing.jpg" align="center" width="1000" height="500"/>
+<figcaption align="left"><center><i style="color:black;">BCM2835 Addressing</i></center></figcaption>
+
+The Raspberry Pi maps the BCM2835 memory to the Pi's physical address of `0x2000 0000`. This is shown in the middle column labeled "ARM Physical Addresses". The gray shaded area labeled I/0 peripherals is the Pi's physical memory location of the BCM2835's peripherals (e.g., GPIO pins). Moving towards the left you'll see a gold box labeled "VC/ARM MMU". This is the [Memory Management Unit](https://en.wikipedia.org/wiki/Memory_management_unit) that is responsible for mapping the Pi's physical memory to the BCM2835 memory. Following the line from the middle column's "I/O Peripherals" partition, through the VC/ARM MMU, to the far left column titled "VC CPU Bus Addresses" leads to the "I/O Peripherals partition on the BCM2835's CPU address bus. It's address is `0x7E00 0000`.
+
+The I/O peripheral addresses can be made available to the application through one of 2 ways. The traditional way is via the `/dev/mem` device mounted on the file system. Accessing this device requires root privileges. A newer method became available starting with the Raspberry Pi 2. This method accesses the I/O peripheral addresses via `/dev/gpio`. An advantage of using this method is that it doesn't require root access. A disadvantage to using this method is that only the GPIO functionality of the BCM2835 can be accessed. This means advanced capabilities like PWM and SPI are not available. Accessing the I/O peripherals using `/dev/mem` also requires a little more work, namely mapping the physical memory from `/dev/mem` to the application's virtual memory. This will be covered in more detail later.
+
 ### Registers
   
-As mentioned above, accessing GPIO peripherals is accomplished using registers. Each peripheral has an associated register located at an offset within the I/O peripheral's address space. For example, the GPIO register set starts at the CPU bus address 0x7E200000. To make this example more explicit
+As mentioned above, specifying the I/O function of a pin or set of pins is accomplished through registers on the BCM2835. Each I/O function has an associated register set located at an offset within the BCM I/O peripheral address space. For example, the GPIO register set starts at the CPU bus address `0x7E20 0000`. The SPI register set starts at CPU bus address offset `0x7E20 4000`. The PWM register set starts at offset `0x7E00 C000`. And so on, each I/O function has it's own set of registers to manage its behavior. That said, they all work on the same principles. Namely, find the offset of the beginning of each I/O function's register set and then set (or get) the appropriate bits at the appropriate offsets to control the behavior. To make this example more explicit, and to highlight additional details, let's do a high level walkthrough of how to control a GPIO pin to blink an LED.
 
-* Register based control over peripherals
-  *   Register sets (e.g., GPIO, PWM,SPI)
-  *   Function Select (input/output/alt _n_)
-  *   Get/Set
-  *   Edge detection
+As mentioned previously the GPIO register starts at bus address `0x7e2000 0000`. Section 6.1 of the [BCM2835 datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf) starting on page 90 provides the details about the GPIO registers. To blink an LED we'll first need to specify the pin's function, output in this case, and then toggle the value of the LED between HIGH and LOW.
+
+#### Specify a pin's function
+
+First the I/O function of the pin needs to be set. A pin's functionality is defined via one of 8 alternative functions. Encoding each function requires 3 bits, 000 - 111. These bits are contained within what is called a GPIO Function Select Register. Each register is 32 bits long. Therefore each 32 bit register can control 10 pins with 2 bits left over. In order to control all of the GPIO pins there are 6 function select registers (the BCM2835 has the capability to control 53 pins via function select registers). The first function select register is located at `0x7E20 0000`, zero-offset from the start of the GPIO register set. The 6th function select register starts at offset `0x7E20 0014`. The 8 alternative functions are:
+
+* Input - represented by bit pattern `000` 
+* Output  - represented by bit pattern `001`
+* and Alternate functions 0 through 5 represented by bit patterns `010` through `111` respectively.
+  
+In this example let's use pin 17 as an output pin. Inspecting the BCM2835 datasheet we see that pin 17 is in function select register 1, AKA GPFSEL1. GPFSEL1 is at offset `0x7E20 0004`. Pin 17's function select offset within the register is at bits 21-23. Recall that the output bit pattern is `001` so we'll need to put that bit pattern in bits 21-23. In the section on coding below we'll see how this is actually accomplished.
+
+#### Set the pin value
+
+This article assumes that pin 17 is attached to the ground terminal of the LED (the cathode). This means that we'll have to set the pin to LOW in order for current to flow from the power input to the anode through to the LED ground on pin 17 and light the LED. Setting the pin to HIGH will cause the LED to turn off. Switching between LOW and HIGH will cause the LED to blink, which is what we're looking for.
+
+GPIO pin values are controlled via the GPIO Pin Output Set register. There are 2 GPIO Pin Output Set registers. Pin 17 is in the first register, GPIO Pin Output Set 0, AKA GPSET0,, at GPIO register offset `0x7E20 002C`. Pin 17 is at bit offset 17 within GPSET0. Setting bit 17 to 1 sets the register to HIGH. GPIO Pin Output Set registers can only set a pin to HIGH, setting a pin to 0 has no effect. But recall we need to set the pin to LOW. Since setting a pin in GPSET0 won't result in the pin being set to LOW how can we accomplish this? It turns out there is another set of GPIO registers called GPIO Pin Output Clear registers. These are used to set a pin's value to LOW. Pin 17 is in GPIO Pin Output Clear register 0, AKA GPCLR0, starting at offset `0x7E20 0028`. It's position within the register is also at bit 17. Setting bit 17 to 1 will set the pin to LOW. So we'll need to left shift a `1` into bit 17 in order to turn on the LED. We'll use GPSET0 to turn the LED off. As with specifying a pin's function, how this is accomplished will be covered later in this article. By using the GPCLR0 and GPSET0 registers in turn we can cause the LED to blink.
+
+#### Other GPIO settings
+
+The GPIO register set can be used to control many other functions of a GPIO pin in addition to selecting the function and setting/clearing a pin's value. It can also be used to read the value of a pin. As discussed in the I/O functions section above other things that can be managed include specifying how state changes are to be detected (rising/falling edge detection) and how to set the voltage of a pin when it's in an indeterminate state (pull-up/down resistors). Discussing these other registers is an advanced topic and is beyond the scope of this article.
 
 ## Setup and Code
 
