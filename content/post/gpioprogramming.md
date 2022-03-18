@@ -24,6 +24,7 @@ The following topics will be covered:
 2. **An introduction to the BCM2835 GPIO Peripherals board** - provides an overview the board's architecture and capabililites.
 3. **An introduction to the [BCM2835 C library](https://www.airspayce.com/mikem/bcm2835/index.html)** - provides a brief overview of the BCM2835 C library. This library is the source of much is what is covered in this article.
 4. **Using the BCM2835 board to control an LED via the GPIO pins** - provides the details, including code, for controlling an LED.
+    * An advanced program is included that will demonstrate how to program a SPI application to display characters on a MAX7219 Dot Matrix Display Module. Since the underlying BCM2835 programming is the same as with a single LED it won't be explained in as much detail.
 5. **Summary** - summarizes the important concepts covered in this article.
 6. **References** - provides a list of references I found helpful and some that were used in the creation of this article.
 
@@ -146,16 +147,58 @@ The GPIO register set can be used to control many other functions of a GPIO pin 
 
 ## Setup and Code
 
+This section starts with a program that causes an LED to blink. It's fairly simple and will show the basic steps needed to program the BCM2835. The next part of this section will cover the BCM2835 programming in more detail. Finally, an more advanced example that uses SPI to control the MAX7219 LED Dot Matrix Display Module will be covered. But before all that, here's how to wire the breadboard to work with the blinking LED example.
+
 <img style="border:1px solid black" src="/images/pwmfordummies/blinkingLED.png" align="center" width="600" height="300"/>
 <figcaption align="left"><center><i style="color:black;">Image credit: Sunfounder</i></center></figcaption>
 
-The breadboard should be wired as illustrated in the above diagram. One very important thing to note, something that I spent way too much time debugging, is that the resistor connecting the ground pin on the 7-segment display must be connected to the ground or negative bus on the breadboard. In all my prior projects I've connected the resistor to the positive breadboard bus. I initially missed this detail and the 7-segment display didn't display anything. One other thing I got wrong on the initial wiring is that I had the 74HC595 output register pins connected incorrectly to the 7-segment display. This is easy to do. I debugged this by noting which LED segments lit up for which expected number. After going through several numbers it became apparent that I had the 'G' and 'E' pins on the 7-segment display reversed.
-
-If you're unfamiliar  with breadboards and breadboard diagrams this [breadboard tutorial ](https://www.sciencebuddies.org/science-fair-projects/references/how-to-use-a-breadboard) should be helpful.
+The breadboard should be wired as illustrated in the above diagram. If you're unfamiliar  with breadboards and breadboard diagrams this [breadboard tutorial ](https://www.sciencebuddies.org/science-fair-projects/references/how-to-use-a-breadboard) should be helpful.
 
 ### Controlling an LED
 
-{{< gist youngkin 84d8e9f350d19d184255adb3fb7ad93c >}}
+{{< gist youngkin 94636963e3658ff55944c8e4e7faa139 >}}
+
+This first code snippet shows how to create a character to be displayed on the MAX7219 dot matrix display module. The 2 dimensional matrix `disp` contains a set of rows, `NUM_CHARS`, which each define a particular character to be displayed. Each column in the matrix, `MATRIX_ROW`, defines which LEDs to turn on in the dot matrix display module. The MAX7219 display module is an 8X8 array of LEDs. In the code snippet above the matrix contains 3 rows with 8 columns. The first cell at `disp1[0][0]` contains the hex value `0x3C`. This defines which LEDs to turn on in the first row, of 8 rows, of the display module. `0x3C` translates to `0011 1100`. Each digit specifies which LED in the row will be turned on. `0x3C` specifies that the middle 4 LEDs in the row of 8 LEDs will be turned on. `disp[0][1]` contains the hex value `0x42` which converts to the binary number `0100 0010` which specifies that the 2nd and 7th LEDs in the second row of 8 LEDs will be turned on. The dot matrix display will look like this after these 2 cells are displayed:
+
+```
+--****--
+-*----*-
+```
+
+LED cells with `-`s are turned off, cells with `*`s are turned on. Once all 8 cells from `disp1[0][0]` to `disp1[0][7]` are displayed the following character, a zero, will be displayed on the dot matrix module:
+
+```
+--****--
+-*----*-
+-*----*-
+-*----*-
+-*----*-
+-*----*-
+-*----*-
+--****--
+```
+
+This next code snippet shows the code for the `main` function. Each of the significant lines will be explained below the snippet.
+
+{{< gist youngkin 93f04126727ece94481a7d56d9daab9b >}}
+
+Line 1 explains that the GPIO pins are hardcoded. This is because the program using the `SPIO` interface. The other 2 interfaces, `SPI1` and `SPI2` are auxilary SPI interfaces. Section 2.3, page 20, of the [The BCM2835 datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf) states the following:
+
+> The two universal SPI masters are secondary low throughput SPI interfaces.
+> ...
+> The universal SPI master has been developed to work even with the most 'non-standard' SPI devices.
+
+Reading between the lines, 'secondary', low-throughput' and 'non-standard' don't seem to be attributes we want to work with. The [BCM2835](https://www.airspayce.com/mikem/bcm2835/index.html) library, which is the basis for the code presented in this article, supports `SPI0` as the primary interface. It has auxilary functions to support the `SPI1` interface, and no functions to support `SPI2`. Given all this I elected to hard-code the `SPI0` interface. Note, the BCM2835 datasheet specifies that GPIO pins 7-11 are dedicated to `SPI0` when the ALT0 function is specified.
+
+Line 3 defines a signal handler to provide graceful shutdown of the application if it is killed (e.g., ^C).
+
+Line 8, the call to `bcm_init()`, initializes the the BCM2835. Among other things, it finds the appropriate memory offsets for the I/O peripherals address space and maps `/dev/mem` so that it is usable for programming the I/O functions.
+
+Line 13, `init_spi()`, initializes the SPI interface which includes setting the I/O function on the GPIO pins to ALT0 (enables SPI0).
+
+Lines 40 ad 41 reset the BCM2835 GPIO functionality and release resources (e.g., `/dev/mem`).
+
+Lines 18-37 are the heart of the `main` function. For each row in the `disp1` array, it writes an entire row's values to the display module resulting in a character being displayed (e.g., `0`).
 
 ## Summary
 
