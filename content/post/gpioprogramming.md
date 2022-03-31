@@ -96,9 +96,9 @@ The SPI interface requires at least 4 GPIO pins. One of the pins, MOSI, sends da
 
  > I reluctantly use the terms "master" and "slave". However these terms are used in all of the documents I've read on SPI. I'll continue to use them in order to avoid confusion.
 
- The 3rd pin is a clock which controls the data transmission between the master and slave. The 4th pin is called the chip select (CS) or chip enable (CE) pin. It is used to prepare the slave device to interface with the BCM2835. An additional slave device can be accessed by using a 5th pin, the second CE/CS pin. The 2 CE/CS pins are used to enable each of the slave devices, but only one device can be enabled at a time. 
+ The 3rd pin is a clock which controls the data transmission between the master and slave. The 4th pin is called the chip select (CS) or chip enable (CE) pin. It is used to prepare the slave device to interface with the BCM2835. An additional slave device can be accessed by using a 5th pin, the second CE/CS pin. The 2 CE/CS pins are used to enable each of the slave devices, but only one device can be enabled at a time. The article [Using Multiple SPI Slave Devices with the Raspberry Pi](https://adikedia.com/2016/08/10/using-multiple-spi-slave-devices-with-wiringpi/) provides more information about how the 2 CE/CS pins are used.
 
-The primary SPI interface on the BCM2835, SPIO, is implemented on GPIO pins 7-11. Pins 7 & 8 are the 2 CE/CS pins available on the BCM2835. Pin 9 is MISO, 10 is MOSI, and 11 is the clock (SCLK). The BCM2835 has 2 auxilary SPI interfaces, SPI1 and SPI2. From the BCM2835 datasheet it looks like SPI1 is available on pins 16-21 and SPI0 on pins 35-39. These auxilary interfaces are available via the AUX I/O function.
+The primary SPI interface on the BCM2835, SPIO, is implemented on GPIO pins 7-11. Pins 7 & 8 are the 2 CE/CS pins available on the BCM2835. Pin 9 is MISO, 10 is MOSI, and 11 is the clock (SCLK). The BCM2835 has 2 auxilary SPI interfaces, SPI 1 (AKA AUX_SPI0) and SPI 2 (AKA AUX_SPI1). From the BCM2835 datasheet it looks like SPI 1 is available on pins 16-21 and SPI 2 on pins 35-39. These auxilary interfaces are available via the AUX I/O function.
 
 SPI can be used to control a variety of peripherals including matrixed LED or LCD displays to display characters or images, take input from touchscreens, and interact with various sensors. [Wikipedia has a good article](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface) describing SPI in more detail.
 
@@ -154,51 +154,218 @@ This section starts with a program that causes an LED to blink. It's fairly simp
 
 The breadboard should be wired as illustrated in the above diagram. If you're unfamiliar  with breadboards and breadboard diagrams this [breadboard tutorial ](https://www.sciencebuddies.org/science-fair-projects/references/how-to-use-a-breadboard) should be helpful.
 
-### Controlling an LED
+This section will first describe the main program that blinks an LED. After that it goes into detail about how the code that interacts with the BCM2835 works to control the I/O functions.
 
-{{< gist youngkin 94636963e3658ff55944c8e4e7faa139 >}}
+### Controlling an LED - main program
 
-This first code snippet shows how to create a character to be displayed on the MAX7219 dot matrix display module. The 2 dimensional matrix `disp` contains a set of rows, `NUM_CHARS`, which each define a particular character to be displayed. Each column in the matrix, `MATRIX_ROW`, defines which LEDs to turn on in the dot matrix display module. The MAX7219 display module is an 8X8 array of LEDs. In the code snippet above the matrix contains 3 rows with 8 columns. The first cell at `disp1[0][0]` contains the hex value `0x3C`. This defines which LEDs to turn on in the first row, of 8 rows, of the display module. `0x3C` translates to `0011 1100`. Each digit specifies which LED in the row will be turned on. `0x3C` specifies that the middle 4 LEDs in the row of 8 LEDs will be turned on. `disp[0][1]` contains the hex value `0x42` which converts to the binary number `0100 0010` which specifies that the 2nd and 7th LEDs in the second row of 8 LEDs will be turned on. The dot matrix display will look like this after these 2 cells are displayed:
+{{< gist youngkin b6d09240d211b22dde5cf8efa522598c >}}
+
+This first code snippet shows a couple of important things:
+
+1. Line 1 gives the command to compile and link the program.
+2. Line 3 provides the include directive needed to import the required BCM function declarations.
+3. Line 8 defines the BCM GPIO pin that is used to control the LED. It matches the wiring diagram above.
+
+{{< gist youngkin f2d0840b28641e0a6412ab87ecc057ab >}}
+
+This snippet declares an interrupt handler to be used to gracefully exit the program. This ensures that the pin, and the LED, are left in a known state. The definition of the interrupt handler will be shown later.
+
+{{< gist youngkin 06d98adb2c5d4eb6038d65db0bcdda5e >}}
+
+This snippet shows the beginning of the main function. 
+
+Line 3 registers the interrupt handler for the SIGINT signal (e.g., ctl-C). 
+
+Lines 5-10 initialize the BCM2835 GPIO functionality. Briefly, it finds the GPIO peripherals offset and length within main memory and maps it to `/dev/mem` so it can be safely accessed within the program. It then sets variables to the offsets of the various capability registers (e.g., GPIO or SPI). If initialization fails the program exits. The `bcm_init()` function will be described in more detail below.
+
+Line 13 sets `LEDPIN` to the GPIO output function. This allows the program to write values, HIGH or LOW, to the pin. The `bcm_gpio_fsel()` function will be described in more detail below.
+
+{{< gist youngkin 90fe4ed60f0dbe266f4f2d6346db1b2d >}}
+
+This snippet presents the main functionality of the program. Lines 2-10 blink the LED on and off.
+
+Lines 5 and 8 set the value of the `LEDPIN` by calling `bcm_gpio_write()` and setting the value of the pin to either `LOW` to turn the LED on, or `HIGH` to turn the LED off. `LOW` turns the LED off because the lead connecting BCM GPIO pin 17 to the LED is connected to the LED's ground pin. To get current to flow the pin must be set to 0 volts. Likewise, `HIGH` turns the LED off. `bcm_gpio_write()` will be described in more detail below.
+
+Lines 6 and 9 cause the program to sleep for 500 milliseconds to the LED can be observed blinking.
+
+As the comment states, line 13 releases the GPIO resources obtained by `bcm_init()`. This will also set the GPIO system back to a known state. `bcm_close()` will be described in more detail below.
+
+{{< gist youngkin a25e8e6c86f81b442a0aa2307f2508ab >}}
+
+This snippet defines the interrupt handler function. Lines 3 and 4 first turn the LED off, then release the GPIO resources obtained by `bcm_init()`.
+
+### Controlling an LED - interacting with the BCM2835
+
+This section describes how the code interacts with and controls the GPIO peripherals, specifically setting the values of the various registers associated with the I/O functionality of the BCM2835. Setting register values is used to control GPIO peripherals and reading register values allow the current state of the associated GPIO peripherals to be accessed.
+
+#### bcm_init()
+
+The section on [Registers](./#registers) mentions that all operations on BCM2835 peripherals are accomplished by manipulating the registers associated for that type of peripheral.The purpose of `bcm_init()` is to determine the address offsets for all the types of registers, e.g., GPIO, PWM, SPI, etc. so that the their associated peripherals can be controlled.
+
+{{< gist youngkin 5eb96cc009b06a09d61aca92f031896f >}}
+
+This snippet shows the beginning of the `bcm_init()` function. 
+
+Line 10 opens the `BCM_RPI2_DT_FILENAME`. As indicated in the comment, the `rb` in the `fopen()` call opens a binary file for reading. `BCM_RPI2_DT_FILENAME` is defined in the associated `bcmfuncs.h` header file. It's value is `/proc/device-tree/soc/ranges`. As stated in [Linux and the Devicetree](https://www.kernel.org/doc/html/latest/devicetree/usage-model.html), 
+
+> An operating system used the Device Tree to discover the topology of the hardware at runtime, and thereby support a majority of available hardware without hard coded information (assuming drivers were available for all devices).
+
+One of the pieces of information the device tree holds, and is important for our purposes, is the location and length of the I/O Peripherals partition in the BCM2835's physical address space. Here's a hex dump of the contents of `/proc/device-tree/soc/ranges` on a Raspberry Pi 3B+:
 
 ```
---****--
--*----*-
+pi@pi-node1:/ $ hexdump -C /proc/device-tree/soc/ranges
+00000000  7e 00 00 00 3f 00 00 00  01 00 00 00 40 00 00 00  |~...?.......@...|
+00000010  40 00 00 00 00 00 10 00                           |@.......|
+00000018
 ```
 
-LED cells with `-`s are turned off, cells with `*`s are turned on. Once all 8 cells from `disp1[0][0]` to `disp1[0][7]` are displayed the following character, a zero, will be displayed on the dot matrix module:
+We'll refer back to this in this next code snippet. Per [devicetree.org](https://www.devicetree.org/specifications/), in [v0.4-rc1 of the Devicetree Specification](https://github.com/devicetree-org/devicetree-specification/releases/download/v0.4-rc1/devicetree-specification-v0.4-rc1.pdf), the `soc/ranges` property is defined as follows:
+
+> The ranges property provides a means of defining a mapping or translation between the address space of the bus (the child address space) and the address space of the bus node’s parent (the parent address space).
+The format of the value of the ranges property is an arbitrary number of triplets of (child-bus-address, parent-bus-address, length)
+
+In the case of the I/O Peripherals address block, as described in the [Addressing section](./#addressing) above, the _"child-bus-address"_ refers to the _"I/O Peripherals"_ address block in the _"VC CPU Bus Addresses"_ memory space. The _"parent-bus-address"_ refers to the the _"I/O Peripherals"_ address block in the _"ARM Physical Addresses"_ block. And the _"length"_ refers to the actual length of the _"I/O Peripherals"_ address block. 
+
+{{< gist youngkin 40c162eaeef54c259d1345f18d9b85e1 >}}
+
+This next code snippet finds the _parent-bus-address_ and _length_ of the I/O peripherals block using the data from `/proc/device-tree/soc/ranges`. Lines 1 thru 4 shift the contents of the _parent-bus-address_, bytes at `buf` offsets 4 thru 7, into `base_address`. `3F` is shifted into the high order byte of `base_address`. The remaining `buf` cells are likewise shifted into `base_address` from left (most significant) to right (least significant byte). After shifting is complete `base_address` will be set to `0x3F000000`. Looking back at the diagram in the [Addressing section](./#addressing) above you'll notice it __DOESN'T MATCH__ the base address of `0x20000000` in the _I/O Peripherals_ address block in _ARM Physical Addresses_. This is because the diagram in the Addressing section is for the Raspberry Pi 1. This offset is different in the Raspberry Pi models 2 & 3. And it's different yet again in the Raspberry Pi 4 model. Moving on, in a similar manner to `base_address`, lines 6 thru 9 get the _length_ by shifting from `buf` offsets 8 thru 11 into `peri-size`. For the Raspberry Pi 3B+, `0x01000000` is the expected length of the address block.
+
+{{< gist youngkin 3f8ae5656e480195f3d7293061711016 >}}
+
+This next code snippet completes obtaining the addressing information from `/proc/device-tree/soc/ranges`. Specifically it validates that the _"child-bus-address"_ and _"parent-bus-address"_ have the expected values. Recall that the _"child-bus-address"_ is the first value in the address/length triplet, `buf` offsets 0 thru 3. Lines 1 thru 6 do the following:
+
+1. Lines 1 thru 4 verify that the first 4 bytes of `buf`, the _child-bus-address_, is `0x7E000000` as defined by the _"I/O Peripherals"_ address block in the _"VC CPU Bus Addresses"_ memory space.
+2. Line 5 verifies that the _parent-bus-address_, `base_address`, matches one of the expected base addresses for Raspberry Pi models 1 thru 4.
+
+Lines 7 and 8 then set the base address and length of the _I/O Peripherals_ address block to the variables that will be used in the rest of the program.
+
+{{< gist youngkin 26f58efe4fdfed3eedf800ae8e167ef4 >}}
+
+This next snippet maps the BCM2835's _"I/O Peripherals"_ address block in the _"ARM Physical Addresses"_ memory space from `/dev/mem` so that it can be safely used in the program.
+
+Line 1 first checks to see if the user running the program is running as _root_ (either _root_ or _sudo_). If not, the `/dev/mem` device can't be used. `/dev/mem` provides unrestricted access to the CPU's memory. As this is obviously a dangerous thing to do its use is restricted to _root_. As you may recall from the [Addressing section](./#addressing), there is an alternative to `/dev/mem`, `/dev/gpio`. This will be shown later in this section.
+
+Line 4 opens `/dev/mem` in preparation to the mapping operation.
+
+Line 13 assigns the `bcm_peripherals` variable to the offset and length, `bcm_peripherals_base` and `bcm-peripherals_size`, of the _I/O Peripherals_ address block. This mapping effectively restricts the program's access to the _I/O Peripherals_ address block of physical memory.
+
+{{< gist youngkin 583d622c0db398a6316f997b66cc219c >}}
+
+This next code snippet sets the offsets for the various types of registers (e.g., GPIO, PWM, SPI, etc). Notice that each off set starts at `bcm_peripherals` which was the result of a a `mapmem()` operation. This is the address space of the _I/O Peripherals_ block. The various register type offsets start at this offset. Then the base of each register type, e.g., `BCM_GPIO_BASE` is added to the `bcm_peripherals` base address. Note that each offset is divided by `4`. Each of these offset variables, e.g., `bcm_gpio`, is a `uint32_t`. Note that pointer arithmetic is being performed. You may recall that pointer arithmetic operates on a variable based on the size of the type of the associated variable. For `unint32_t`'s their size is 4 bytes. So each pointer arithmetic operation works in multiples of 4 bytes. Adding 4 to a `uint32_t` type will increment it's value by 4. Now, with regard to adding the offsets of the various register types to `bcm_peripherals`, these offsets are specified in increments of 1, not 4. So for the pointer arithmetic to work as expected these offsets need to be divided by 4. Another way to think about what's going on here is to think of `someOffset/4` as the 32-bit offset from the register base address. So, for example, `BM_GPIO_BASE/4` is the number of 32-bit words that are offset from `bcm_peripherals`.
+
+#### bcm_fsel()
+
+`bcm_fsel` is responsible for setting the I/O function associated for a given pin. There are a total of 8 functions available. One defines that the associated pin is to be set as an input pin meaning that it will be read from. Another function defines the associated pin as an output pin meaning the pin will be written to. The remaining 6 are referred to as "alternate functions" and are given names like "alternate function 0". The I/O function that is assigned for the various alternate functions is different for the various GPIO pins. For example, setting BCM GPIO pin 17 to alternate function 4 defines its I/O function to be SPI. It's actually defines the pin to be a specific type of SPI functionality called chip enable or chip select, but that is a topic for a later article. Recall that in `main()` above the function is being set to `BCM_GPIO_FSEL_OUTP` which defines pin 17 to be an output pin.
+
+{{< gist youngkin dc45d2130865d79d989828fea35746d7 >}}
+
+There's quite a bit going on in this function even though it is quite short.
+
+__Line 1__ defines the function as taking two parameters, `pin` and `mode`. It is fairly obvious that `pin` the pin whose function is to be assigned. `mode` is the I/O function to associate with `pin`. `mode` is actually a bit pattern to be assigned to a particular register offset. The bit pattern assignments are defined in the [The BCM2835 I/O Peripherals datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf) in section 6, __GPIO__. The patterns are defined as follows:
 
 ```
---****--
--*----*-
--*----*-
--*----*-
--*----*-
--*----*-
--*----*-
---****--
+000 = GPIO Pin X is an input
+001 = GPIO Pin X is an output
+100 = GPIO Pin X takes alternate function 0
+101 = GPIO Pin X takes alternate function 1
+110 = GPIO Pin X takes alternate function 2
+111 = GPIO Pin X takes alternate function 3
+011 = GPIO Pin X takes alternate function 4
+010 = GPIO Pin X takes alternate function 5
 ```
 
-This next code snippet shows the code for the `main` function. Each of the significant lines will be explained below the snippet.
+There is some additional background needed to understand the rest of the function. First, [The BCM2835 I/O Peripherals datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf), section 6, shows that a total of 54 GPIO pins are addressable via the function select registers (GPFSEL0-GPFSEL5). Each function select register is 32 bits long. Since each of the function select patterns above is 3 bits long each function select register can specify the I/O function for 10 pins with 2 bits left over. Ten pins per register and a total of 54 pins explains why there are 6 function select registers numbered 0 thru 5. The math that follows is derived from this information.
 
-{{< gist youngkin 93f04126727ece94481a7d56d9daab9b >}}
+__Line 3__ defines the register offset, `paddr`, of the bits that will be set according to `mode`. `BCM_GPFSEL0` is the base offset of the function select registers. `BCM_GPFSEL0` is a `uint32_t`. Here's an explanation of the arithmetic performed in this line.
 
-Line 1 explains that the GPIO pins are hardcoded. This is because the program using the `SPIO` interface. The other 2 interfaces, `SPI1` and `SPI2` are auxilary SPI interfaces. Section 2.3, page 20, of the [The BCM2835 datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf) states the following:
+1. Notice that pointer arithmetic is being performed. Recall that the result of pointer arithmetic is based on the type of the target variable (in the bcm_init() section above). Since `uint32_t`'s are 4 bytes long `BCM_GPFSEL0` needs to be divided  by 4 for the calculation to come out correctly. Hence `... paddr = bcm_gpio + BCM_GPFSEL0/4 ...`.
+2. Also recall that each register holds the function select information for 10 pins. For a given pin we need to determine which function select register, GPFSEL0 thru GPFSEL5, specifies the I/O function for a given pin. In C, the result of integer division that results in a fraction will be rounded down. So if we divide the pin number by 10, `(pin/10`), we'll get the offset to the correct function select register. So pin 9 will result in `9/10` which equals 0, meaning pin 9's function select location is in GPFSEL0. Likewise, pin 17's, `17/10 = 1`, function select register is GPFSEL1. And so on.
 
-> The two universal SPI masters are secondary low throughput SPI interfaces.
-> ...
-> The universal SPI master has been developed to work even with the most 'non-standard' SPI devices.
+Taken together, the equation `paddr = bcm_gpio + BCM_GPFSEL0/4 + (pin/10)` results in the function select register offset appropriate for a given `pin`. For pin 17 this will result in `paddr` logically pointing to GPFSEL1 at address `0x7E20 0004`, `7E` being the bus address, `20004` being the offset of the GPIO registers plus the offset of GPFSEL1, `4`, from the beginning of the GPIO register set. I say logically here because the actual value of `paddr` is 4 times less than the actual address offset since it's a  `uint32_t`. Another factor in the actual value is the return value of the `mapmem()` operation, which is the offset of the beginning of the GPIO peripherals registers.
 
-Reading between the lines, 'secondary', low-throughput' and 'non-standard' don't seem to be attributes we want to work with. The [BCM2835](https://www.airspayce.com/mikem/bcm2835/index.html) library, which is the basis for the code presented in this article, supports `SPI0` as the primary interface. It has auxilary functions to support the `SPI1` interface, and no functions to support `SPI2`. Given all this I elected to hard-code the `SPI0` interface. Note, the BCM2835 datasheet specifies that GPIO pins 7-11 are dedicated to `SPI0` when the ALT0 function is specified.
+__Line 4__ calculates the location within the function select register for given pin's function select value. Since we'll use bit shifting to set the pin's function select value this location becomes the number of bits to __SHIFT__ the pin's function select value as provided in the `mode` parameter. Building the calculation up we first need to find the pin's logical location, that is, which 3 bit cell within the function select register (recall that each function select value is 3 bits long). The calculation for this is given by `shift = (pin % 10) ...`. For pin 17 `(pin % 17) = 7`. So pin 17's 3 bit cell is located at the 7th 3-bit offset. Next we have to find the actual bit offset within the register. Since each function select value is 3 bits long each pin's boundary is a multiple of 3, hence the complete calculation of `shift = (pin % 10) * 3`. For pin 17 this results in `(17%10)*3` which equals `7*3` which results in an absolute bit offset of 21. Consulting [the BCM2835 I/O Peripherals datasheet, section 6](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf), on page 92,  we can confirm that pin 17's offset within the GPFSEL0 register is in bit positions 21 thru 23.
 
-Line 3 defines a signal handler to provide graceful shutdown of the application if it is killed (e.g., ^C).
+Now let's look at __line 5__. When setting a subset of bits to a given value we want to preserve the values of the surrounding bits. A mask is used to accomplish this. The mask contains bit(s) that is in the position of the bit in the target value that we want to change. For example, in the bit pattern `0101 1111`, if we want to set bit 6's value from 1 to 0 we only need to define a bit sequence with 1 bit set. To create the most general solution we would just set the least significant bit(s). Since we only need a single bit set we would define the mask as hex number `0x1`, which specifies the bit pattern `0000 0001`. Next we need to shift this bit pattern as required so that the `1` bit(s) is moved to the correct position. In our example, since we want to change bit 6, we would left shift the mask pattern 6 bits to the left, e.g., `newMask = 0000 0001 << 6`. This results in `newMask` equaling `0100 00000`, which is puts the `1` bit in position 6 as we desire. It's possible that we could have defined the mask as `0100 0000` outright, but this would not result in a general solution that would work for any mask needed to set a bit(s) in an arbitrary bit position, such as bits 21-23.
 
-Line 8, the call to `bcm_init()`, initializes the the BCM2835. Among other things, it finds the appropriate memory offsets for the I/O peripherals address space and maps `/dev/mem` so that it is usable for programming the I/O functions.
+As given in bcmfuncs.h the value of `BCM_GPIO_FSEL_MASK` is 0x7 or `0000 0111`, this is because each GPIO function select pattern is 3 bits long. So this is a useful bit pattern for masking 3 bit sequences. If we shift this pattern by the __SHIFT__ of 21 as calculated in line 4 above we'll get a 32 bit pattern that looks like this, `0000 0000 1110 0000 0000 0000 0000 0000`. The mask is now in bit locations 21-23, which is the location of pin 17's function select pattern in the GPFSEL1 function select register. 
 
-Line 13, `init_spi()`, initializes the SPI interface which includes setting the I/O function on the GPIO pins to ALT0 (enables SPI0).
+In summary, __line 5__ creates the mask needed to set the 3 bit function select pattern as specified in the `mode` parameter on the provided `pin` parameter.
 
-Lines 40 ad 41 reset the BCM2835 GPIO functionality and release resources (e.g., `/dev/mem`).
+__Line 6__ creates the new 3 bit value that will be placed into the GPFSEL1 register. Recall that GPFSEL1 is a 32 bit register. To use a 3 bit value such as `mode` to set a 3 bit sequence at an arbitrary position, e.g., bits 21-23, we create a value mask that sets the bits in the desired position to the desired value. As with the mask above, the most general solution specifies that those bits be set starting in the least significan position. Let's say in our example we want pin 17 to be set to alternate function 1. Looking at the bit patterns above we can see that the 3 bit value for alternate function 1 is `101`. The `mode` parameter will contain this value. To set pin 17 to alternate function 1 we need to shift `mode`'s bit pattern of `0000 0101` 21 bits to the left. As with line 5, line 6 does this in a general way, `value = mode << shift`. Given our value of `mode` and the calculated value of `shift` we get the 32 bit `value` of `0000 0000 1010 0000 0000 0000 0000 0000`.
 
-Lines 18-37 are the heart of the `main` function. For each row in the `disp1` array, it writes an entire row's values to the display module resulting in a character being displayed (e.g., `0`).
+So we now have the 4 variables needed to calculate the new value of the GPFSEL1 register, `paddr`, `mode`, `mask`, and `value`.
+
+__Line 7__ calls the function `bcm_peri_set_bits()` to complete this operation. This operation is done in a separate function since there are other register values that require setting as we will see later.
+
+#### bcm_peri_set_bits()
+
+`bcm_peri_set_bits()` is the function that sets a 32 bit sequence, `v`, to a new value, `value`, at position `paddr`, using a `mask` as discussed above. As with `bcm_fsel()`, this function does quite a bit in just a few lines of code.
+
+{{< gist youngkin 3a034112183f8892c5b256eb9095c535 >}}
+
+__Line 3__ uses `bcm_peri_read()` to read the 32 bit value `v` located at `paddr`. More on this later.
+
+__Line 4__ sets the `v` to its new value. Recall that when a mask is used a subset of bits can be set while leaving the remaining bits unchanged. Line 4 does this in 2 steps. First it does a bitwise-AND operation, `&`, between the current value `v` with the complement of mask. Taking the example in the previous section for `BCM_GPIO_FSEL_MASK`, it's bit value, for brevity just bit positions 16 and 23, is reversed from `... 1110 0000 ...` to `... 0001 1111 ...`. When the bitwise-AND occurs between the the complemented `mask` and `v` as in `(v & ~mask)`, only the bits 21-23 of the original value `v` are modified and bits 21-23 are reset to `0`s. If bits 16-23 of `v` were set to `... 0100 1010 ...`, the new value of bits 16-23 will now look like `... 0000 1010 ...`. In our example for pin 17 its function select bits have been reset to zeros.
+
+The next opertion, `(value & mask)` only retains the bits values at positions 21-23 of the new value, `value`, setting the remaining bits to `0`. Bits 16-23 of `value` are `... 1010 0000 ...` which specifies pin 17 is is to be set to alternate function 1. The result of the operation `... 1010 0000 ... & ... 1110 0000 ...` is `... 1010 0000 ...`, which is expected. The operation is specified as `(value & mask)` because we can't say ahead of time that only bits 21-23 are to be reset to `value`. Both `value` and `mask` could have bits set at other positions.
+
+Putting this all together, `(v & ~mask) | (value & mask)` will OR the 2 results, ``... 0000 1010 ... | ... 1010 0000 ...` which results in `v` being reset to `... 1010 1010 ...`. Remember that only bits 21-23 were changed. This is shown here by bits 16-19 retaining their previous values. Likewise, the other bits ov `v` will remain unchanged.
+
+__Line 5__ the sets the 32 bits at `paddr` to `v` via `bcm_peri_write()`. More on this later as well.
+
+#### bcm_peri_read()
+
+`bcm_peri_read()` will read the 32 bits starting at `paddr` and return them to the caller as a 32 bit value. Unlike `bcm_fsel()` and `bcm_peri_set_bits()` this function is quite simple.
+
+{{< gist youngkin 5ee1dbb21e3e4223492dc96adb61a5f8 >}}
+
+Lines 4 & 6 synchronize access to memory so that the read can't be interrupted.
+
+Line 5 simply sets the return value, `ret`, to the contents located at `paddr`.
+
+If we perform a bitwise-AND operation, `&`,  on the original value this mask will clear the value of bit 6 while preserving the values of the other bits. The new intermediate value would be `0001 1111`. If we perform a bitwise-OR operation, `|` between the intermediate value and the original value the new value will be `0001 1111`, which is the same as the original value with the exception of bit 6 being set to 0.
+
+As given in bcmfuncs.h the value of `BCM_GPIO_FSEL_MASK` is 0x7 or `111`. This is a useful bit pattern for masking 3 bit sequences. If we shift this pattern by the __SHIFT__ of 21 as calculated in line 4 above we'll get a 32 bit pattern that looks like this, `0000 0000 1110 0000 0000 0000 0000 0000`. The mask is now in bit locations 21-23, which is the location of pin 17's function select pattern in the GPFSEL1 function select register.
+
+#### bcm_peri_write()
+
+`bcm_peri_writes()` will write the 32 bits starting at `paddr` to the value contained in `value`. Like `bcm_peri_read()` this function is quite simple.
+
+{{< gist youngkin 147e413e5293ddf57965d107995ab6dc >}}
+
+Lines 3 and 5 synchronize access (lock) to the 32 bits starting at `paddr`.
+
+Line 4 sets the 32 bits located at `paddr` to `value`.
+
+#### bcm_gpio_write()
+
+{{< gist youngkin b40fcbd81d14eee0a73ed167cb464282 >}}
+
+`bcm_gpio_write()` writes the 32 bit `value` to the specified `pin`. It uses 2 helper functions, `bcm_gpio_set()` and `bcm_gpio_clr()`. The parameter `on` is used to specify if the `value` for `pin` should be set or cleared. There are a set of 4 GPIO registers, GPSET0 and GPSET1, and GPCLR0 and GPCLR1, which specify if the value of a pin is HIGH or LOW. HIGH corresponds to GPSETn. LOW corresponds to GPCLRn. When the value of `on` is `1` the GPSETn register associated with the value of `pin` is set to 1. If `on` is set to `0` then the GPCLRn register associated with the value of `pin` is set to 1. GPSETn's values are only used when a pin's I/O function is set to OUTPUT. GPCLRn's values are likewise only used when a pin's I/O function is set to OUTPUT. Values of `0` in these registers are ignored. Recall that the BCM2835 allows GPIO functions to be specified for 54 pins (vs. the expected 40). Since each pin requires 1 bit to specify whether it's to be set or cleared a total of 54 bits is required. This explains why two 32 bit registers are needed for set and clear.
+
+The use of these registers is further described in section 6, page 95, of [the BCM2835 I/O Peripherals datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf).
+
+#### bcm_gpio_set() and bcm_gpio_clr()
+
+`bcm_gpio_set()` and `bcm_gpio_clr()` are twins in terms of their functionality. They only differ in which registers they operate on. `*set()` operates on the GPSETn registers and `*clr()` operates on the GPCLRn registers. They are responsible for setting the appropriate bit offset in the appropriate register for the provided `pin` argument. This section will only describe `bcm_gpio_set()`. With the exception of the register set operated on their implementations are identical. In fact, the addition of another parameter to specify the starting offset they could be collapsed into a single function.
+
+{{< gist youngkin 95158df431e7c3b655e013dbc8160fff >}}
+
+In `bcm_gpio_set()` __line 3__ calculates the address, `paddr`, of the target register. `bcm_gpio` is the starting offset of the GPIO registers. `BCM_GPSET0` is the starting offset of the set and clear registers. Recall from the discussion in the `bcm_init()` section above that pointer arithmetic is used to determine the memory offset to use for a given operation. This is why `BCM_GPSET0` is divided by 4 in this operation. `pin/32` is used to calculate which of the `GP*n` registers is to be used for the given `pin`. Recall that integer division always rounds down. So the result of `pin 17/32` is `0` which specifies that the first `GP*n` register will be used. This is consistent with the BCM2835 datasheet. And `0` is correct in the calculation of the `paddr` because of the use of integer arithmetic.
+
+__Line 4__ calculates how large of a `shift` is needed to set the proper bit associated with `pin` in the `GP*n` register. Taking our example of pin 17, `17%32` is 17, which corresponds to bit 17 in GPSET0. Again, per the BCM2835 datasheet, this is the correct offset within the correct register.
+
+__Line 5__ then uses `bcm_peri_write()` to shift `1`, `shift` bits to the left, in order to write to the correct offset in the correct register. From the calculation on line 4, `1` is shifted 17 bits to the left.
+
+#### bcm_close()
+
+`bcm_close` deallocates all resources and resets all GPIO offsets to their original values, `MAP_FAILED` in this case. With regard to `MAP_FAILED`, this value prevents any more operations on the BCM2835 peripheral registers.
+
+{{< gist youngkin 953c5dcb578b10ca4b51607e4dade0cb >}}
+
+__Line 3__ releases the memory reserved by the `mapmem()` operation in `bcm_init()`.
+
+__Lines 4-14__ reset all the register offsets to their default settings.
 
 ## Summary
 
@@ -214,9 +381,12 @@ Comments and questions about this article are welcome.
 * [How to setup a new Raspberry Pi from scratch](https://projects.raspberrypi.org/en/projects/raspberry-pi-setting-up)
 * [How to use a breadboard](https://www.sciencebuddies.org/science-fair-projects/references/how-to-use-a-breadboard)
 * [GPIO programming on a Raspberry Pi 3B+](https://youngkin.github.io/categories/gpio/) is a link to my articles about GPIO programming on the Raspberry Pi 
-* [The BCM2835 datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf). This excludes BCM2835 support for protocols such as SPI, Pulse Width Modulation, and IC2 which overlay specific protocol capability by utilizing the underlying pins mapped to a given protocol (e.g., GPIO pins 8-11 are associated with the SPI protocol and have behaviors that can be enabled that are specific to that protocol). That said, using the basic pin level functionality covers the same concepts needed to utilize advanced protocol capabilites such as SPI. This article, coupled with the [BCM2835 datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf), should provide enough background to drive devices that are controlled via those capabilities. Of course there are multiple libraries such as 
+* [The BCM2835 datasheet](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf).
+* [The MAX7219 datasheet](https://datasheets.maximintegrated.com/en/ds/MAX7219-MAX7221.pdf) describes the low level details of the MAX7219 LED Dot Matrix Display, called the Serially Interfaced, 8-Digit LED Display Drivers in the datasheet. This includes detailed information about the registers, what they do, and how to set them.
 * The C [BCM2835](https://www.airspayce.com/mikem/bcm2835/index.html) library by Mike McCauley 
 * The C [WiringPi](http://wiringpi.com) library and associated [GitHub repository](https://github.com/WiringPi/WiringPi)
 * The Python [pgpio](http://abyz.me.uk/rpi/pigpio/) library
 * The Python [RPi.GPIO](https://pypi.org/project/RPi.GPIO/) library
 * The Go [go-rpio](https://github.com/stianeikeland/go-rpio)
+* [Using Multiple SPI Slave Devices with the Raspberry Pi](https://adikedia.com/2016/08/10/using-multiple-spi-slave-devices-with-wiringpi/) provides more information about how the 2 CE/CS pins are used.
+* [Linux and the Devicetree](https://www.kernel.org/doc/html/latest/devicetree/usage-model.html) describes what a Linux device tree is and how it is used.
