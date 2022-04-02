@@ -1,7 +1,7 @@
 ---
 title: "Raspberry Pi GPIO - Using SPI to display alphanumeric characters on a MAX7219 Dot Matrix Display Module"
 description: "Learn how to directly program the BCM2835 using registers to perform tasks such as writing to a GPIO pin or using advanced capabilites such as SPI."
-date: 2022-04-02T13:13:42-06:00
+date: 2023-04-02T13:13:42-06:00
 draft: false
 image: "/images/bcm2835programming/Raspberry-Pi-3B-top_1500_dark.jpg"
 tags: ["raspberry-pi", "C", "GPIO"]
