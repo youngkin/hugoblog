@@ -14,7 +14,7 @@ toc: true
 
 ## Overview
 
-This is the fourth article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder 7-Segment Display](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.4_7-segment_display_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/). The code for the series can be found on [github](https://github.com/youngkin/gpio).
+This is the fifth article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder 7-Segment Display](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.4_7-segment_display_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/). The code for the series can be found on [github](https://github.com/youngkin/gpio).
 
 Like the [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project, there are some complicated aspects to this project that aren't well covered in the Sunfounder project documentation. The purpose of this article is to fill those gaps, specifically:
 

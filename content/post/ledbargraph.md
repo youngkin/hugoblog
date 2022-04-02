@@ -14,7 +14,7 @@ toc: true
 
 ## Overview
 
-This is the third article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder LED Bar Graph](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.3_led_bar_graph_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/). The code for the series can be found in my [gpio repository](https://github.com/youngkin/gpio).
+This is the fourth article in a series that explores GPIO programming on a Raspberry Pi 3B+. It is a supplement to the [Sunfounder LED Bar Graph](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.3_led_bar_graph_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/). The code for the series can be found in my [gpio repository](https://github.com/youngkin/gpio).
 
 The [Sunfounder LED Bar Graph](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.3_led_bar_graph_c.html) project provides very good documentation regarding how to set up the project as well as describing the C code. This article is more geared towards describing what an LED bar graph is, what it's good for, and how to control an LED bar graph using Go as well as C.
 

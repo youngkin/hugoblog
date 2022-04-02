@@ -1,7 +1,7 @@
 ---
 title: "Pulse Width Modulation for Dummies"
 description: "An overview of PWM, with code examples, on the Raspberry Pi."
-date: 2021-11-01T13:13:42-06:00
+date: 2021-10-21T13:13:42-06:00
 draft: false
 image: "images/pwmfordummies/PWMPulsePerioddim.png"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]
@@ -10,7 +10,7 @@ GHissueID: 1
 toc: true
 ---
 
-This article provides some details about hardware and software based PWM on the Raspberry Pi, specifically the 3B+ with the [Broadcomm BCM2835 board](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf). This article has an accompanying application, [PWM Explorer](https://github.com/youngkin/gpio)[^20], that can be used to experiment with PWM settings and capabilities.
+This is the second article in a series that explores [GPIO programming on a Raspberry Pi 3B+](https://youngkin.github.io/categories/gpio/). This article provides some details about hardware and software based PWM on the Raspberry Pi, specifically the 3B+ with the [Broadcomm BCM2835 board](https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf). This article has an accompanying application, [PWM Explorer](https://github.com/youngkin/gpio)[^20], that can be used to experiment with PWM settings and capabilities.
 
 <!--more-->
 

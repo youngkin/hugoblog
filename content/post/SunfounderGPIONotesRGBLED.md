@@ -1,7 +1,7 @@
 ---
 title: "Raspberry Pi GPIO in Go and C - RGB LED"
 description: "Use Pulse Width Modulation (PWM) on a Raspberry Pi to drive an RGB LED in Go and C"
-date: 2021-11-04T13:13:42-06:00
+date: 2021-11-01T13:13:42-06:00
 draft: false
 image: "images/pwmfordummies/rgbledlandscape1a.png"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]
@@ -14,7 +14,7 @@ toc: true
 
 ## Overview
 
-This is the second article in a series that explores GPIO programming on a Raspberry Pi 3B+. The first is [Raspberry Pi GPIO in Go and C - Blinking LED](https://youngkin.github.io/post/sunfoundergpionotesled/). It is a supplement to the [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/).
+This is the third article in a series that explores GPIO programming on a Raspberry Pi 3B+. The first is [Raspberry Pi GPIO in Go and C - Blinking LED](https://youngkin.github.io/post/sunfoundergpionotesled/). It is a supplement to the [Sunfounder RGB LED](https://docs.sunfounder.com/projects/raphael-kit/en/latest/1.1.2_rgb_led_c.html) project. You can find the full series [here](https://youngkin.github.io/categories/gpio/).
 
 This article explores the use of Pulse Width Modulation (PWM) to drive an RGB LED, as well as how to control an individual LED pin's brightness. The code samples will be in Go and C.
 
