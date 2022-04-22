@@ -1,7 +1,7 @@
 ---
 title: "Raspberry Pi GPIO - Introduction To Programming Broadcom BCM2835 ARM Peripherals"
 description: "Learn how to directly program the BCM2835 on a Raspberry Pi using its registers to perform tasks such as writing to a GPIO pin or using advanced capabilites such as SPI."
-date: 2022-04-02T13:13:42-06:00
+date: 2022-04-05T13:13:42-06:00
 draft: false
 image: "/images/bcm2835programming/Raspberry-Pi-3B-top_1500_dark.jpg"
 tags: ["raspberry-pi", "C", "GPIO"]
@@ -22,10 +22,9 @@ The following topics will be covered:
 
 1. **Prerequisites** - describes the hardware and libraries you'll need for this article.
 2. **An introduction to BCM2835 GPIO Peripherals** - provides an overview the BCM2835's architecture and capabililites.
-3. **An introduction to the [BCM2835 C library](https://www.airspayce.com/mikem/bcm2835/index.html)** - provides a brief overview of the BCM2835 C library developed by Mike McCauley. This library is the source of much is what is covered in this article.
-4. **Using the BCM2835 board to control an LED via the GPIO pins** - provides the details, including code, for controlling an LED using the BCM2835 GPIO registers.
-5. **Summary** - summarizes the important concepts covered in this article.
-6. **References** - provides a list of references I found helpful, some of which were used in the creation of this article.
+3. **Using the BCM2835 board to control an LED via the GPIO pins** - provides the details, including code, for controlling an LED using the BCM2835 GPIO registers.
+4. **Summary** - summarizes the important concepts covered in this article.
+5. **References** - provides a list of references I found helpful, some of which were used in the creation of this article.
 
 ## Prerequisites
 
@@ -36,9 +35,9 @@ Next you'll need is a [breadboard](https://www.amazon.com/dp/B082KBF7MM/ref=sspa
 <img style="border:1px solid black" src="/images/pwmfordummies/RaphaelKit.png" align="center" width="600" height="300"/>
 <figcaption align="left"><center><i style="color:black;">Sunfounder Ultimate Starter/Raphael kit</i></center></figcaption>
 
-You'll need to download the [BCM2835 C library](https://www.airspayce.com/mikem/bcm2835/index.html). Please see the website for up-to-date information on how to download and install the library. There is quite a bit more information beyond installation on the website. I suggest at least perusing it to get an idea of what other information is available regarding installation and use.
+You'll need some basic C programming knowledge as well as familiarity with logging on to a Raspberry Pi terminal, or into the desktop GUI that comes with some OS versions. Depending on the approach you take, you may need to connect a keyboard and monitor to the Raspberry Pi. I simply SSH into the Pi. You'll need familiarity with how to use an editor like Vi or nano. You'll also need basic familiarity with the Linux command line.
 
-Finally, you'll need some basic C programming knowledge as well as familiarity with logging on to a Raspberry Pi terminal, or into the desktop GUI that comes with some OS versions. Depending on the approach you take, you may need to connect a keyboard and monitor to the Raspberry Pi. I simply SSH into the Pi. You'll also need familiarity with how to use an editor like Vi or nano. Finally, you'll need basic familiarity with the Linux command line.
+Finally, you'll need to clone or fork [my GPIO repository](https://github.com/youngkin/gpio) as it contains underlying library code used to access GPIO capabilities on the BCM2835. As mentioned in other sections, this library code is based on the [BCM2835 C library](http://www.airspayce.com/mikem/bcm2835/index.html) developed by Mike McCauley.
 
 ## An introduction to the BCM2835 ARM Peripherals
 
@@ -86,22 +85,48 @@ Accomplishing this uses the GPIO I/O  functions. More accurately it uses the GPI
 
 #### SPI (Serial Peripheral Interface)
 
-SPI is used to send data serially to a peripheral that can accept or requires data in parallel. This is helpful because a relatively large set of parallel inputs can be written to using just 3 GPIO pins. If SPI wasn't used, one GPIO pin would be required for each parallel input. This could easily be prohibitive since pins are a limited resource.
+SPI is used to send data serially to a peripheral that can accept or requires data in parallel. This is helpful because a relatively large set of parallel inputs can be written to using just 3 GPIO pins not including power (VCC) and ground (GND). If SPI wasn't used, one GPIO pin would be required for each parallel input. This could easily be prohibitive since pins are a limited resource. Let's see how this works with an example.
 
-<img style="border:1px solid black" src="/images/sevensegdisplay/7segmentdisplaypinout.png" align="center" width="200" height="100"/>
-<figcaption align="left"><center><i style="color:black;">Image credit: Circuit Basics</i></center></figcaption>
+<img style="border:1px solid black" src="/images/bcm2835programming/MAX7219_Transparent.jpg" align="center" width="600" height="300"/>
+<figcaption align="left"><center><i style="color:black;">Image credit: Author</i></center></figcaption>
 
-The diagram above shows a 7 segment display that is commonly used to display display numeric characters in devices like calculators and clocks. Note that it doesn't support SPI, it's just used to help explain why SPI is useful. It has 8 input lines and 2 ground lines. Controlling this directly using GPIO would use 8 of the 40 GPIO pins. Controlling 6 of these displays would take all 48 GPIO pins, but there are only 40. Clearly the approach to using GPIO to control this peripheral isn't practical. Enter a device called a shift register. Shift registers can control 8 input lines of a connected peripheral. It uses 5 GPIO pins, 3 for input and 2 for control. To control multiple peripherals it's possible to daisy-chain shift registers without requiring additional GPIO pins. Taking our previous example of 6 7 segment displays, using a shift register requires 5 GPIO pins vs. the 48 that would be required by directly using GPIO pins. Some SPI peripherals like the [MAX7219 Dot Matrix Display Module](https://datasheets.maximintegrated.com/en/ds/MAX7219-MAX7221.pdf) have an on-board shift register. If you're interested in learning more about shift registers see my article [Raspberry Pi GPIO in Go and C - Using a Shift Register & 7 Segment Display](http://youngkin.github.io/post/shiftregistersevensegdisplay/).
+The diagram above shows the MAX7219 LED Dot Matrix Display. It's commonly used to display display arbitrary shapes such as letters, numbers, and smiley faces. It controls an 8x8 matrix of LEDs. Controlling an LED requires 1 pin excluding power or ground. An 8x8 LED matrix has 64 LEDs. This number is well in excess of the 26 or 40 GPIO pins available on a standard Raspberry Pis. As explained below, utilizing SPI requires considerably fewer GPIO pins.
 
-The SPI interface requires at least 4 GPIO pins. One of the pins, MOSI, sends data to a peripheral. MOSI stands for Master Out Slave In. The second pin, MISO (Master In Slave Out) accepts input. 
+The MAX7219 has the following input pins:
+
+1. DIN - this is the serial data input pin.
+2. CS - This is commonly called a chip select (CS) or chip enable (CE) pin.
+3. CLK - This pin connects to a clock pin on the Raspberry Pi that synchronizes data transfers between the Raspberry Pi and the MAX7219.
+
+There are 2 more pins that aren't used to control the MAX7219.
+
+1. VCC - This is the power-in pin. It connects to a power source on the Raspberry Pi, usually a 3.3v source.
+2. GND - This is the ground pin. It connects to a ground pin of the Raspberry Pi.
+
+A minimum of 3 GPIO pins are required to connect from the Raspberry Pi to the MAX7219, specifically to the DIN, CS, and CLK pins. A Raspberry Pi can control all 64 LEDs in a cost (pin-wise) efficient manner using only these three pins. The usual approach is to use the Raspberry Pi pins that can drive the DIN, CS, and CLK pins. These 3 pins are named:
+
+1. (SPI)MOSI - This stands for Master Out Slave In. The MOSI pin will be connected to the MAX7219 DIN pin and is used to send a serial data signal to the MAX7219 (or any SPI peripheral).
+2. (SPI)SCLK - These stand for SPI Clock. This pin will be connected to the MAX7219 CLK pin. It is used as the source of the clock signal used to synchronize the data transfer between the BCM2835 and the MAX7219 (or any SPI peripheral). The data transfer will occur when both the MOSI pin and the SCLK pin are set to HIGH.
+3. (SPI)CS or (SPI)CE - These stands for Chip Select or Chip Enable. In either case, setting the pin to LOW directs the MAX7219 to accept data as described in the previous bullet.
 
  > I reluctantly use the terms "master" and "slave". However these terms are used in all of the documents I've read on SPI. I'll continue to use them in order to avoid confusion.
 
- The 3rd pin is a clock which controls the data transmission between the master and slave. The 4th pin is called the chip select (CS) or chip enable (CE) pin. It is used to prepare the slave device to interface with the BCM2835. An additional slave device can be accessed by using a 5th pin, the second CE/CS pin. The 2 CE/CS pins are used to enable each of the slave devices, but only one device can be enabled at a time. The article [Using Multiple SPI Slave Devices with the Raspberry Pi](https://adikedia.com/2016/08/10/using-multiple-spi-slave-devices-with-wiringpi/) provides more information about how the 2 CE/CS pins are used.
+The SPI capability on the Raspberry Pi may require as many as 5 GPIO pins. The 2 additional pins are:
 
-The primary SPI interface on the BCM2835, SPI0, is implemented on GPIO pins 7-11. Pins 7 & 8 are the 2 CE/CS pins available on the BCM2835. Pin 9 is MISO, 10 is MOSI, and 11 is the clock (SCLK). The BCM2835 has 2 auxilary SPI interfaces, SPI1 (AKA AUX_SPI0) and SPI2 (AKA AUX_SPI1). From the BCM2835 ARM Peripherals guide SPI1 is available on pins 16-21 and SPI2 on pins 35-39. These auxilary interfaces are available via the AUX I/O function.
+1. (SPI)MISO - This stands for Master In Slave Out. This pin allows for the MAX7219 (or any SPI peripheral) to send data back to the BCM2835.
+2. (SPI)CS or (SPI)CE - This is a second chip select/chip enable pin. Having a second CS/CE pin allows the BCM2835 to control 2 SPI peripherals. As stated above, when the CS/CE pin is set to LOW the SPI peripheral will accept data from the BCM2835. So by setting one of the CS/CE pins to HIGH and the other to LOW we can control which slave can receive and send data. The article [Using Multiple SPI Slave Devices with the Raspberry Pi](https://adikedia.com/2016/08/10/using-multiple-spi-slave-devices-with-wiringpi/) provides more information about how the 2 CE/CS pins are used. The following schematic illustrates how this is done:
 
-SPI can be used to control a variety of peripherals including matrixed LED or LCD displays to display characters or images, take input from touchscreens, and interact with various sensors. [Wikipedia has a good article](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface) describing SPI in more detail.
+<img style="border:1px solid black" src="/images/bcm2835programming/SPIMasterSlave.jpg" align="center" width="600" height="300"/>
+<figcaption align="left"><center><i style="color:black;">Image credit: BCM2835 ARM Peripherals Guide</i></center></figcaption>
+
+The primary SPI interface on the BCM2835, SPI0, is implemented on GPIO pins 7-11. Pins 7 & 8 are the 2 CE/CS pins available on the BCM2835. Pin 9 is MISO, 10 is MOSI, and 11 is the clock (SPICLK/SCLK). The BCM2835 has 2 auxilary SPI interfaces, SPI1 (AKA AUX_SPI0) and SPI2 (AKA AUX_SPI1). From the BCM2835 ARM Peripherals Guide, SPI1 is available on pins 16-21 and SPI2 on pins 35-39. These auxilary interfaces are available via the AUX I/O function.
+
+The following diagram shows a GPIO extension board frequently used to connect the BCM2835 GPIO pins to a breadboard. The pins are labeled with there GPIO pin numbers or the I/O function (e.g., SPI) they support Note the SPI pins are labeled on the board using the same terms as above:
+
+<img style="border:1px solid black" src="/images/bcm2835programming/GPIOExtensionBoard.jpg" align="center" width="500" height="250200"/>
+<figcaption align="left"><center><i style="color:black;">Image credit: BCM2835 ARM Peripherals Guide</i></center></figcaption>
+
+In addition to the MAX7219, SPI can be used to control a variety of peripherals to display images, take input from touchscreens, and interact with various sensors. [Wikipedia has a good article](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface) describing SPI in more detail.
 
 I have an upcoming article devoted to SPI. I'll update this document adding a reference when it becomes available.
 
@@ -268,7 +293,7 @@ This next code snippet calculates the offsets for the various types of registers
 
 #### bcm_fsel()
 
-`bcm_fsel` is responsible for setting the I/O function associated for a given pin. There are a total of 8 functions available. One defines that the associated pin is to be set as an input pin meaning that it will be read from. Another function defines the associated pin as an output pin meaning the pin will be written to. The remaining 6 are referred to as "alternate functions" and are given names like "alternate function 0". The I/O function that is assigned for the various alternate functions is different for the various GPIO pins. For example, setting BCM GPIO pin 17 to alternate function 4 defines its I/O function to be SPI. It actually defines the pin to be a specific subset of SPI functionality called chip enable or chip select, but that is a topic for a later article. Recall that in `main()` above the function is being set to `BCM_GPIO_FSEL_OUTP` which defines pin 17 to be an output pin.
+`bcm_fsel` is responsible for setting the I/O function associated for a given pin. There are a total of 8 functions available. One defines that the associated pin is to be set as an input pin meaning that it will be read from. Another function defines the associated pin as an output pin meaning the pin will be written to. The remaining 6 are referred to as "alternate functions" and are given names like "alternate function 0". The I/O function that is assigned for the various alternate functions is different for the various GPIO pins. For example, setting BCM GPIO pin 17 to alternate function 4 defines its I/O function to be SPI. It actually defines the pin to be a specific subset of SPI functionality called chip enable or chip select, but that is a topic for a later article. Recall that in `main()` above, the function is being set to `BCM_GPIO_FSEL_OUTP` which defines `pin` to be an output pin.
 
 {{< gist youngkin dc45d2130865d79d989828fea35746d7 >}}
 
@@ -401,3 +426,5 @@ Comments and questions about this article are welcome.
 * The Python [RPi.GPIO](https://pypi.org/project/RPi.GPIO/) library
 * The Go [go-rpio](https://github.com/stianeikeland/go-rpio)
 * [Linux and the Devicetree](https://www.kernel.org/doc/html/latest/devicetree/usage-model.html) describes what a Linux device tree is and how it is used.
+* [Using Multiple SPI Slave Devices with the Raspberry Pi](https://adikedia.com/2016/08/10/using-multiple-spi-slave-devices-with-wiringpi/) provides more information about how to use multiple slave devices.
+* 

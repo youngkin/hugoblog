@@ -17,7 +17,10 @@ paginate = 5 #frontpage pagination
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
-
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 4
+    ordered = false
 [params]
   #header_image = "images/MeAtJackson.jpeg"
   header_image = "images/main_go_wideandtall_darklayer.jpeg"
@@ -28,6 +31,7 @@ paginate = 5 #frontpage pagination
   slogan = "How to do it and why does it work?"
   SEOTitle = "Rich Youngkin Topics in Software Engineering"
   keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, GPIO, Microservice"
+  toc = true
  
   # Sidebar settings
   sidebar_about_description = "Rich Youngkin - Father, Husband, Skier, Cyclist, and, oh yeah, Software Developer"
