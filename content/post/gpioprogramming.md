@@ -128,7 +128,7 @@ The following diagram shows a GPIO extension board frequently used to connect th
 
 In addition to the MAX7219, SPI can be used to control a variety of peripherals to display images, take input from touchscreens, and interact with various sensors. [Wikipedia has a good article](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface) describing SPI in more detail.
 
-I have an upcoming article devoted to SPI. I'll update this document adding a reference when it becomes available.
+My article titled [Raspberry Pi GPIO - Using SPI to display arbitrary patterns on a MAX7219 Dot Matrix Display Module](http://youngkin.github.io/post/spidotmatrixmodule/) provides detailed coverage of the SPI I/O function and how to program it. Similar to this article, it also includes detailed coverage of how to directly program the BCM2835 using the associated registers on the BCM2835, but for SPI instead of general GPIO I/O functionality. By reading that article you'll gain a deeper understanding of how to use the BCM2835 registers to program the I/O functionality supported by the BCM2835.
 
 #### PWM (Pulse Width Modulation)
 
