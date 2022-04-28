@@ -7,6 +7,13 @@ languageCode = "en-us"
 #googleAnalytics = ""
 #preserveTaxonomyNames = true
 paginate = 5 #frontpage pagination
+enableRobotsTXT = true
+canonifyURLs = true
+
+[sitemap]
+  changefreq = "weekly"
+  filename = "sitemap.xml"
+  priority = 0.5
 
 #[outputs]
 #home = ["HTML", "RSS", "Algolia"]
@@ -25,12 +32,12 @@ paginate = 5 #frontpage pagination
   #header_image = "images/MeAtJackson.jpeg"
   header_image = "images/main_go_wideandtall_darklayer.jpeg"
   logo_image = "images/YBrand_edit.png"
-  title = "Topics in Software Engineering"
+  title = "Raspberry Pi Programming"
   author = "Rich Youngkin"
-  description = "Thoughts on software engineering, cloud architectures, Kuberentes deployments, and Raspberry Pis"
-  slogan = "How to do it and why does it work?"
-  SEOTitle = "Rich Youngkin Topics in Software Engineering"
-  keyword = "Rich, Youngkin, Raspberry, Pi, Docker, Kubernetes, Go, Golang, GPIO, Microservice"
+  description = "How to effectively use a Raspberry Pi for GPIO programming, general software development and as a deployment platform"
+  slogan = "GPIO programming, Software Development, and Software Deployment on Raspberry Pis"
+  SEOTitle = "Raspberry Pi GPIO Programming and Software Developent"
+  keyword = "Rich, Youngkin, Raspberry Pi, Docker, Kubernetes, Go, Golang, GPIO, Microservice"
   toc = true
  
   # Sidebar settings
@@ -39,7 +46,7 @@ paginate = 5 #frontpage pagination
   about_me = true
 
   featured_tags = true 
-  featured_condition_size = 1 # How many posts have to have a given tag to be featured (greater-than)
+  featured_condition_size = 2 # How many posts have to have a given tag to be featured (greater-than)
 
   image_404 = "images/404-bg.jpg"
   title_404 = "We couldn't find what you were looking for..."
@@ -62,18 +69,6 @@ paginate = 5 #frontpage pagination
   #algolia_appId = ""
   #algolia_indexName = ""
   #algolia_apiKey = ""
-
-  # Baidu Analytics
-  #ba_track_id = ""
-  
-  # We need a proxy to access Disqus api in China
-  # Follow https://github.com/zhaohuabing/disqus-php-api to set up your own disqus proxy
-  #disqus_proxy = ""
-  #disqus_site = ""
-
-  #Enable wechat pay & alipay to allow readers send reward money if they like the articles 
-  #reward = true 
-  # reward_guide = "如果这篇文章对你有用,请随意打赏" 
 
   # Include any custom CSS and/or JS files, url or relative to /static folder
   #custom_css = ["css/lightbox.css", "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css", "css/main.css"]

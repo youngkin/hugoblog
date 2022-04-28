@@ -291,7 +291,7 @@ __Line 10__ opens the `BCM_RPI2_DT_FILENAME`. As indicated in the comment, the `
 
 > An operating system used the Device Tree to discover the topology of the hardware at runtime, and thereby support a majority of available hardware without hard coded information (assuming drivers were available for all devices).
 
-One of the pieces of information the device tree holds, and is important for our purposes, is the location and length of the I/O Peripherals partition in the BCM2835's physical address space (see [Introduction To Programming Broadcom BCM2835 ARM Peripherals - Addressing](https://youngkin.github.io/post/gpioprogramming/#addressing) for details). Here's a hex dump of the contents of `/proc/device-tree/soc/ranges` on a Raspberry Pi 3B+:
+One of the pieces of information the device tree holds, and is important for our purposes, is the location and length of the I/O Peripherals partition in the BCM2835's physical address space (see [Introduction To Programming Broadcom BCM2835 ARM Peripherals - Addressing](https://youngkin.github.io/post/gpioprogramming/#addressing) for details). Here's a hex dump of the contents of `/proc/device-tree/soc/ranges` on a Raspberry Pi 3B+ (the first 8 zeros are the address offset within /proc/device-tree/soc/ranges):
 
 ```
 pi@pi-node1:/ $ hexdump -C /proc/device-tree/soc/ranges
@@ -313,9 +313,17 @@ This next code snippet finds the _parent-bus-address_ and _length_ of the I/O pe
 
 ```
 7e 00 00 00 3f 00 00 00  01 00 00 00
-``` 
- 
- __Lines 1 thru 4__ shift the contents of the _parent-bus-address_, `3f 00 00 00`, the bytes at `buf` offsets 4 thru 7, into `base_address`. `3F` is shifted into the high order byte of `base_address`. The remaining `buf` cells are likewise shifted into `base_address` from left (most significant) to right (least significant byte). After shifting is complete `base_address` will be set to `0x3F000000`. Looking back at the diagram in [Introduction To Programming Broadcom BCM2835 ARM Peripherals - Addressing](https://youngkin.github.io/post/gpioprogramming/#addressing) you'll notice it __DOESN'T MATCH__ the base address of `0x20000000` in the _I/O Peripherals_ address block in _ARM Physical Addresses_. This is because the diagram in the Addressing section is for the Raspberry Pi 1. This offset is different in the Raspberry Pi models 2 & 3. And it's different yet again in the Raspberry Pi 4 model. 
+```
+
+> Note: The output of the command is somewhat different on a Raspberry Pi 4. It will look more like this:
+>
+> ```
+> pi@kubemaster:~ $ hexdump -C /proc/device-tree/soc/ranges
+> 00000000  7e 00 00 00 00 00 00 00  fe 00 00 00 01 80 00 00  |~...............|
+> ```
+> In this dump the starting address of the parent bus address is at offset 8, the value is `fe 00 00 00`. For the Raspberry Pi 3 it's at offset 4. In both cases the length of the the address is 4 bytes or 32 bits. The length of the I/O Peripherals partition starts at offset 12 and the value is `01 80 00 00`. Although the code snippet above doesn't reflect this difference, the code for the complete function does take this into account.
+
+__Lines 1 thru 4__ shift the contents of the _parent-bus-address_, `3f 00 00 00`, the bytes at `buf` offsets 4 thru 7, into `base_address`. `3F` is shifted into the high order byte of `base_address`. The remaining `buf` cells are likewise shifted into `base_address` from left (most significant) to right (least significant byte). After shifting is complete `base_address` will be set to `0x3F000000`. Looking back at the diagram in [Introduction To Programming Broadcom BCM2835 ARM Peripherals - Addressing](https://youngkin.github.io/post/gpioprogramming/#addressing) you'll notice it __DOESN'T MATCH__ the base address of `0x20000000` in the _I/O Peripherals_ address block in _ARM Physical Addresses_. This is because the diagram in the Addressing section is for the Raspberry Pi 1. This offset is different in the Raspberry Pi models 2 & 3. And it's different yet again in the Raspberry Pi 4 model. 
 
 Moving on, in a similar manner to `base_address`, __lines 6 thru 9__ get the _length_ by shifting from `buf` offsets 8 thru 11 into `peri-size`. For the Raspberry Pi 3B+, `0x01000000` is the expected length of the address block.
 
