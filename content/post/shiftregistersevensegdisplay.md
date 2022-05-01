@@ -1,6 +1,6 @@
 ---
 title: "Raspberry Pi GPIO in Go and C - Using a Shift Register & 7 Segment Display"
-description: "What are shift registers & 7-Segment LEDs and how to program them on a Raspberry Pi using C & Golang"
+description: "What are shift registers & 7-Segment displays and how to program them on a Raspberry Pi using C & Golang"
 date: 2021-11-19T13:13:42-06:00
 draft: false
 image: "images/sevensegdisplay/header3.png"
