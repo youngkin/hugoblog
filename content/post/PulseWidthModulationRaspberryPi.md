@@ -5,7 +5,7 @@ date: 2021-10-21T13:13:42-06:00
 draft: false
 image: "images/pwmfordummies/PWMPulsePerioddim.png"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]
-categories: ["raspberry-pi", "Go", "GPIO"]
+categories: ["raspberry-pi", "Go", "C", "GPIO"]
 GHissueID: 1
 toc: true
 ---

@@ -5,7 +5,7 @@ date: 2021-11-01T13:13:42-06:00
 draft: false
 image: "images/pwmfordummies/rgbledlandscape1a.png"
 tags: ["raspberry-pi", "Go", "C", "GPIO"]
-categories: ["raspberry-pi", "Go", "GPIO"]
+categories: ["raspberry-pi", "Go", "C", "GPIO"]
 GHissueID: 1
 toc: true
 ---
