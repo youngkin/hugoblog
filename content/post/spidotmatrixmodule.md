@@ -10,11 +10,11 @@ GHissueID: 1
 toc: true
 ---
 
+This is the seventh article in a series that explores [GPIO programming on a Raspberry Pi](https://youngkin.github.io/categories/gpio/). It describes how to control Serial Peripheral Interface (SPI) peripherals such as the [MAX7219 LED Dot Matrix Display Module](https://datasheets.maximintegrated.com/en/ds/MAX7219-MAX7221.pdf).
+
 <!--more-->
 
 ## Overview
-
-This is the seventh article in a series that explores [GPIO programming on a Raspberry Pi](https://youngkin.github.io/categories/gpio/). It describes how to control Serial Peripheral Interface (SPI) peripherals such as the [MAX7219 LED Dot Matrix Display Module](https://datasheets.maximintegrated.com/en/ds/MAX7219-MAX7221.pdf).
 
 There are 2 approaches to reading this article. The first is to focus only on the SPI and dot matrix display aspects of the article by skipping the [Controlling the MAX7219 - direct interaction with the BCM2835](./#controlling-the-max7219---direct-interaction-with-the-bcm2835) section. The second approach involves also learning how to control SPI peripherals by directly accessing the SPI register set instead of using a 3rd party library. This requires reading the [Controlling the MAX7219 - direct interaction with the BCM2835](./#controlling-the-max7219---direct-interaction-with-the-bcm2835) section.
 

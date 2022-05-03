@@ -1,5 +1,5 @@
 baseurl = "https://youngkin.github.io"
-title = "Rich Youngkin"
+title = "Raspberry Pi Programming"
 theme = "hugo-theme-cleanwhite-rsy"
 languageCode = "en-us"
 # Enable comments by entering your Disqus shortname
@@ -32,16 +32,16 @@ canonifyURLs = true
   #header_image = "images/MeAtJackson.jpeg"
   header_image = "images/main_go_wideandtall_darklayer.jpeg"
   logo_image = "images/YBrand_edit.png"
-  title = "Raspberry Pi Programming"
+  title = "Learn You Some Raspberry Pi for Great Good!"
   author = "Rich Youngkin"
   description = "How to effectively use a Raspberry Pi for GPIO programming, general software development and as a deployment platform"
   slogan = "GPIO programming, Software Development, and Software Deployment on Raspberry Pis"
-  SEOTitle = "Raspberry Pi GPIO Programming and Software Developent"
+  SEOTitle = "Raspberry Pi GPIO Programming and Software Development"
   keyword = "Rich, Youngkin, Raspberry Pi, Docker, Kubernetes, Go, Golang, GPIO, Microservice"
   toc = true
  
   # Sidebar settings
-  sidebar_about_description = "Rich Youngkin - Father, Husband, Skier, Cyclist, and, oh yeah, Software Developer"
+  sidebar_about_description = "How to effectively use a Raspberry Pi for GPIO programming, general software development and as a deployment platform"
   sidebar_avatar = "images/MeAtJackson.jpeg" 
   about_me = true
 
