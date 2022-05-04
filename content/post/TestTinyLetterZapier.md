@@ -1,5 +1,5 @@
 ---
-title: "Testing Subscriptions using TinyLetter and Zapier
+title: "Testing Subscriptions using TinyLetter and Zapier"
 description: "Do TinyLetter/Zapier work?"
 date: 2022-05-03T08:08:42-06:00
 draft: false
