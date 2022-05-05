@@ -1,0 +1,105 @@
+<head>
+    <!-- Google Analytics 
+    {{ template "_internal/google_analytics.html" . }}
+    {{ template "_internal/google_analytics_async.html" . }}
+    -->
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-177198277-1"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-177198277-1');
+    </script>
+
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- start ogp -->
+    <meta property="og:site_name" content="{{ .Site.Title }}">
+    <meta property="og:type" content="article">
+
+    {{ if .Params.thumbnail }}
+    <meta property="og:image" content="{{ .Site.BaseURL }}{{ .Params.thumbnail }}">
+    <meta property="twitter:image" content="{{ .Site.BaseURL }}{{ .Params.thumbnail }}" />
+    {{ else }}
+    <meta property="og:image" content="{{ .Site.BaseURL }}/{{ .Site.Params.header_image }}">
+    <meta property="twitter:image" content="{{ .Site.BaseURL }}/{{ .Site.Params.header_image }}" />
+    {{ end }}
+
+    {{ if .Params.title }}
+    <meta name="title" content="{{ .Params.title }}" />
+    <meta property="og:title" content="{{ .Params.title }}" />
+    <meta property="twitter:title" content="{{ .Params.title }}" />
+    {{ else }}
+    <meta name="title" content="{{ .Site.Params.title }}" />
+    <meta property="og:title" content="{{ .Site.Params.title }}" />
+    <meta property="twitter:title" content="{{ .Site.Params.title }}" />
+    {{ end }}
+
+    {{ if .Params.description }}
+    <meta name="description" content="{{ .Params.description }}">
+    <meta property="og:description" content="{{ .Params.description }}" />
+    <meta property="twitter:description" content="{{ .Params.description }}" />
+    {{ else }}
+    <meta name="description" content="{{ .Site.Params.description }}">
+    <meta property="og:description" content="{{ .Site.Params.description }}" />
+    <meta property="twitter:description" content="{{ .Site.Params.description }}" />
+    {{ end }}
+
+    {{ if .Params.summary }}
+    <meta property="twitter:card" content="{{ .Params.summary }}" />
+    {{ else }}
+    <meta property="twitter:card" content="summary" />
+    {{ end }}
+    <!-- end ogp -->
+
+    <meta name="keyword"  content="{{ .Site.Params.keyword }}">
+    <link rel="shortcut icon" href="{{ "img/favicon.ico" | relURL }}">
+
+    <title>{{ if .Title }}{{ .Title }}-{{ .Site.Params.SEOTitle }}{{ else }}{{ .Site.Params.SEOTitle }}{{ end }}</title>
+
+    <link rel="canonical" href="{{ .URL | relURL }}">
+
+    <link rel="stylesheet" href="{{ "css/iDisqus.min.css" | relURL }}"/>
+	
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="{{ "css/bootstrap.min.css" | relURL }}">
+
+    <!-- Hux CSS -->
+    <link rel="stylesheet" href="{{ "css/hux-blog.min.css" | relURL }}">
+
+    <!-- zangshang CSS -->
+    <link rel="stylesheet" href="{{ "css/zanshang.css" | relURL }}">
+    
+    <!-- Custom Fonts -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!--  Custom CSS  -->
+    {{ range .Site.Params.custom_css -}}
+    <link rel="stylesheet" href="{{ . | absURL }}">
+    {{- end }}
+
+    <!--
+    <script src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    -->
+    <!-- jQuery -->
+    <script src="{{ "js/jquery.min.js" | relURL }}"></script>
+    
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{{ "js/bootstrap.min.js" | relURL }}"></script>
+    
+    <!-- Hux Theme JavaScript -->
+    <script src="{{ "js/hux-blog.min.js" | relURL }}"></script>
+
+    <!-- Custom JS -->
+    {{ range .Site.Params.custom_js }}
+    <script src="{{ . | absURL }}"></script>
+    {{ end }}
+
+</head>
+

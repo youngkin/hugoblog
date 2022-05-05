@@ -1,0 +1,150 @@
+
+<!-- Sidebar Container -->
+<div class="
+    col-lg-3 col-lg-offset-0
+    col-md-3 col-md-offset-0
+    col-sm-12
+    col-xs-12
+    sidebar-container
+">
+<!-- Featured Tags -->
+    {{ if .Site.Params.featured_tags }}
+    <section>
+        <hr class="hidden-sm hidden-xs">
+        <h5>FEATURED TAGS</h5>
+        <div class="tags">
+            {{ $featured_condition_size := .Site.Params.featured_condition_size }} 
+            {{ range $name, $taxonomy := .Site.Taxonomies.tags }}
+               {{ if gt (len $taxonomy.Pages) $featured_condition_size }} 
+                    <a href="{{ "/tags/" | relLangURL }}{{ $name | urlize }}" title="{{ $name }}">
+                        {{ $name }}
+                    </a>
+               {{ end }} 
+            {{ end }}
+        </div>
+    </section>
+    {{ end }}
+
+    <!-- Short About -->
+	{{ if .Site.Params.about_me }}
+    <section class="visible-md visible-lg">
+	<hr><h5><a href="{{ "/top/about" | relLangURL }}">ABOUT ME - Rich Youngkin</a></h5>
+        <div class="short-about">
+            {{ with .Site.Params.sidebar_avatar }}
+            <a href="{{ "/top/about" | relLangURL }}">
+               <img src="{{ . | relURL }}" alt="avatar" style="cursor: pointer" />
+            </a>
+            {{ end }}
+            {{ with .Site.Params.sidebar_about_description }}
+                <p>{{ . }}</p>
+            {{ end }}
+        </div>
+        </section>
+
+    <!-- Subscribe 
+    <section>
+        <hr>
+        <center><p>
+            <!--
+            <font face="arial" color="red">
+            <h3><i>Want to stay up to date?</i></h3>
+            </font>
+            -->
+                <font  size="4" face="times new roman">
+                <a href="https://tinyletter.com/elev5280"><i><b>Subscribe for email updates</a> or use
+                <a href='{{ with .OutputFormats.Get "RSS" }}{{ .RelPermalink }}{{ end }}'>RSS</b></i></a>
+                </font>
+        </p></center>
+    </hr>
+           <!-- SNS Link -->
+           <ul class="list-inline"> 
+               {{ if .Site.Params.social.rss }}
+               <li>
+                   <a href='{{ with .OutputFormats.Get "RSS" }}{{ .RelPermalink }}{{ end }}' rel="alternate" type="application/rss+xml" title="RSS" >
+                       <span class="fa-stack fa-lg">
+                           <i class="fa fa-circle fa-stack-2x"></i>
+                           <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
+                       </span>
+                   </a>
+               </li>
+               {{ end }}
+               {{ with .Site.Params.social.github }}
+               <li>
+                   <a target="_blank" href="{{ . }}" title="GitHub">
+                       <span class="fa-stack fa-lg">
+                           <i class="fa fa-circle fa-stack-2x"></i>
+                           <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                       </span>
+                   </a>
+               </li>
+               {{ end }}
+               {{ with .Site.Params.social.linkedin }}
+               <li>
+                   <a target="_blank" href="{{ . }}" title="LinkedIn">
+                       <span class="fa-stack fa-lg">
+                           <i class="fa fa-circle fa-stack-2x"></i>
+                           <i class="fa fa-linkedin fa-stack-1x fa-inverse"></i>
+                       </span>
+                   </a>
+               </li>
+               {{ end }}
+               {{ with .Site.Params.social.medium }}
+               <li>
+                   <a target="_blank" href="{{ . }}" title="Medium">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-medium fa-stack-1x fa-inverse"></i>
+                            </span>
+                   </a>
+               </li>
+               {{ end }}
+               {{ with .Site.Params.social.stackoverflow }}
+                    <li>
+                        <a target="_blank" href="{{ . }}" title="Stackoverflow">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-stack-overflow fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+            {{ end }}
+            {{ with .Site.Params.social.reddit }}
+                    <li>
+                        <a target="_blank" href="{{ . }}" title="Reddit">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-reddit fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+            {{ end }}
+            </ul>
+            </div>
+    </section>
+	{{ end }}
+    <!-- Friends Blog -->
+    {{ if .Site.Params.friends }}
+    <section>
+        <hr class="hidden-sm hidden-xs">
+        <h5>FRIENDS</h5>
+        <ul class="list-inline">
+            {{ range .Site.Params.friend_link }}
+            <li><a target="_blank" href="{{.href | relLangURL}}">{{.title}}</a></li>
+            {{ end }}
+        </ul>
+    </section>
+    {{ end }}
+
+    <!-- Bookmarks -->
+    {{ if .Site.Params.bookmarks }}
+    <section>
+        <hr>
+        <h5>BOOKMARKS</h5>
+        <ul class="list-inline">
+            {{ range .Site.Params.bookmark_link }}
+            <li><a target="_blank" href="{{.href | relLangURL}}">{{.title}}</a></li>
+            {{ end }}
+        </ul>
+    </section>
+    {{ end }}
+</div>
