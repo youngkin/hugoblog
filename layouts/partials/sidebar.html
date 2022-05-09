@@ -9,7 +9,7 @@
 ">
 <!-- Featured Tags -->
     {{ if .Site.Params.featured_tags }}
-    <section>
+    <section class="visible-md visible-lg">
         <hr class="hidden-sm hidden-xs">
         <h5>FEATURED TAGS</h5>
         <div class="tags">
@@ -35,27 +35,18 @@
                <img src="{{ . | relURL }}" alt="avatar" style="cursor: pointer" />
             </a>
             {{ end }}
-            {{ with .Site.Params.sidebar_about_description }}
-                <p>{{ . }}</p>
-            {{ end }}
         </div>
+    </section>
+    <hr><section class="visible-md visible-lg">
+            <h5>About this blog</h5>
+            {{ with .Site.Params.sidebar_about_description }}
+                {{ . }}
+            {{ end }}
+    </section>
+    <hr><section class="visible-md visible-lg">
+            <a href="https://tinyletter.com/elev5280"><i><b><font color="red">Subscribe to stay up to date with my newsletter</font></b></i></a> 
         </section>
-
-    <!-- Subscribe 
-    <section>
-        <hr>
-        <center><p>
-            <!--
-            <font face="arial" color="red">
-            <h3><i>Want to stay up to date?</i></h3>
-            </font>
-            -->
-                <font  size="4" face="times new roman">
-                <a href="https://tinyletter.com/elev5280"><i><b>Subscribe for email updates</a> or use
-                <a href='{{ with .OutputFormats.Get "RSS" }}{{ .RelPermalink }}{{ end }}'>RSS</b></i></a>
-                </font>
-        </p></center>
-    </hr>
+    <hr><section class="visible-md visible-lg">
            <!-- SNS Link -->
            <ul class="list-inline"> 
                {{ if .Site.Params.social.rss }}

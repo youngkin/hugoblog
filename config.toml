@@ -6,7 +6,7 @@ languageCode = "en-us"
 #disqusShortname = ""
 #googleAnalytics = ""
 #preserveTaxonomyNames = true
-paginate = 5 #frontpage pagination
+paginate = 20 #frontpage pagination
 enableRobotsTXT = true
 canonifyURLs = true
 
@@ -39,6 +39,7 @@ canonifyURLs = true
   SEOTitle = "Raspberry Pi GPIO Programming and Software Development"
   keyword = "Rich, Youngkin, Raspberry Pi, Docker, Kubernetes, Go, Golang, GPIO, Microservice"
   toc = true
+  #page_view_conter = true
  
   # Sidebar settings
   sidebar_about_description = "How to effectively use a Raspberry Pi for GPIO programming, general software development and as a deployment platform"
@@ -60,9 +61,9 @@ canonifyURLs = true
   github = false
 
   # leancloud storage for page view counter
-  page_view_conter = false 
-  leancloud_app_id = ""
-  leancloud_app_key = ""
+ # page_view_conter = false 
+ # leancloud_app_id = ""
+ # leancloud_app_key = ""
 
   # algolia site search
   #algolia_search = true

@@ -2,6 +2,7 @@
 title: "Raspberry Pi GPIO - Using SPI to display arbitrary patterns on a MAX7219 Dot Matrix Display Module"
 description: "Learn how to use SPI by directly programming the BCM2835 to control GPIO pins"
 date: 2022-04-23T08:08:42-06:00
+lastmod: 2022-05-05T15:00:00-06:00
 draft: false
 image: "/images/bcm2835programming/MAX7219Dark.jpg"
 tags: ["raspberry-pi", "C", "GPIO"]

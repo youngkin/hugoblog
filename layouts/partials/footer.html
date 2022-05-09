@@ -2,15 +2,7 @@
 <footer>
     <div class="container">
         <center><p>
-            <!--
-            <font face="arial" color="red">
-            <h3><i>Want to stay up to date?</i></h3>
-            </font>
-            -->
-                <font  size="4" face="times new roman">
-                <a href="https://tinyletter.com/elev5280"><i><b>Subscribe for email updates</a> or use
-                <a href='{{ with .OutputFormats.Get "RSS" }}{{ .RelPermalink }}{{ end }}'>RSS</b></i></a>
-                </font>
+           <a href="https://tinyletter.com/elev5280"><i><b><font  size="4" face="times new roman" color="red">Subscribe to stay up to date with my newsletter!</font></b></i></a>
         </p></center>
     </div>
     
@@ -18,10 +10,9 @@
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
                 <ul class="list-inline text-center">
-                    <!--
                    {{ if .Site.Params.social.rss }}
                    <li>
-                       <a href='{{ with .OutputFormats.Get "RSS" }}{{ .RelPermalink }}{{ end }}' rel="alternate" type="application/rss+xml" title="{{ .Site.Title | default "" }}" >
+                       <a href='{{ with .OutputFormats.Get "RSS" }}{{ .RelPermalink }}{{ end }}' rel="alternate" type="application/rss+xml" title="RSS" }} >
                            <span class="fa-stack fa-lg">
                                <i class="fa fa-circle fa-stack-2x"></i>
                                <i class="fa fa-rss fa-stack-1x fa-inverse"></i>
@@ -29,7 +20,6 @@
                        </a>
                    </li>
                    {{ end }}
-                -->
                     {{ with .Site.Params.social.email }}
                     <li>
                         <a href="mailto:{{ . }}"
@@ -104,9 +94,9 @@
             {{ end }}
                 </ul>
 		<p class="copyright text-muted">
-                    Copyright &copy; {{ .Site.Title }} {{ now.Year }}
+                    Copyright &copy; {{ .Site.Params.Author }} {{ now.Year }}
                     <br>
-                    <a href="https://themes.gohugo.io/hugo-theme-cleanwhite">CleanWhite Hugo Theme</a> by <a href="https://zhaohuabing.com">Huabing</a> |
+                    <a href="https://themes.gohugo.io/hugo-theme-cleanwhite">Based on CleanWhite Hugo Theme</a> by <a href="https://zhaohuabing.com">Huabing</a> |
                     <iframe title="Zhao Huabing GitHub"
                         style="margin-left: 2px; margin-bottom:-5px;"
                         frameborder="0" scrolling="0" width="100px" height="20px"
